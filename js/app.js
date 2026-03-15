@@ -180,36 +180,24 @@ const countOwned = (setId) =>
 
 function renderSet(setId) {
   const set = SETS[setId];
-  const rarityOrder = ['common', 'uncommon', 'rare', 'holo'];
 
-  // Group cards by rarity
-  const groups = {};
-  rarityOrder.forEach(r => { groups[r] = []; });
-  set.cards.forEach(card => groups[card.r]?.push(card));
+  // Ordre pokecardex — les cartes sont déjà dans le bon ordre dans data.js
+  const cards = set.cards;
 
-  let html = `
+  const html = `
     <div class="set-header">
       <span class="set-header__name">${set.name[currentLang]}</span>
       <span class="set-header__jp">${set.subtitle}</span>
     </div>
+    <div class="cards-grid">
+      ${cards.map(card => renderCard(setId, card)).join('')}
+    </div>
   `;
 
-  rarityOrder.forEach(rarity => {
-    const cards = groups[rarity];
-    if (!cards.length) return;
-
-    html += `
-      <div class="rarity-divider" data-rarity="${rarity}">
-        ${RARITY_LABELS[currentLang][rarity]}
-        <span class="rarity-divider__count">(${cards.length})</span>
-      </div>
-      <div class="cards-grid">
-        ${cards.map(card => renderCard(setId, card)).join('')}
-      </div>
-    `;
-  });
-
   document.getElementById('cards-container').innerHTML = html;
+
+  // Lazy-load TCGdex JP card images after render
+  loadTCGdexImages(setId, cards);
 }
 
 function renderCard(setId, card) {
@@ -221,29 +209,39 @@ function renderCard(setId, card) {
     isOwned ? 'card--owned' : '',
   ].filter(Boolean).join(' ');
 
-  const spriteHtml = card.d
+  // Build fallback sprite (pixel art GB or item or emoji)
+  const fallbackHtml = card.d
     ? `<img
-          class="card__sprite"
+          class="card__sprite card__sprite--fallback-gb"
           src="${getSpriteUrl(card.d)}"
           alt="${card.en}"
-          loading="lazy"
-          width="68"
-          height="68"
-          onerror="this.style.display='none'; this.nextElementSibling.style.display='flex'"
-       />
-       <span class="card__sprite-fallback" style="display:none">${card.t}</span>`
+          width="56" height="56"
+       />`
     : card.item
     ? `<img
-          class="card__sprite card__sprite--item"
+          class="card__sprite card__sprite--item card__sprite--fallback-gb"
           src="${getItemSpriteUrl(card.item)}"
           alt="${card.en}"
-          loading="lazy"
-          width="40"
-          height="40"
-          onerror="this.style.display='none'; this.nextElementSibling.style.display='flex'"
-       />
-       <span class="card__sprite-fallback" style="display:none">${card.t}</span>`
-    : `<span class="card__sprite-fallback">${card.t}</span>`;
+          width="36" height="36"
+       />`
+    : `<span class="card__sprite-emoji">${card.t}</span>`;
+
+  // Skeleton + real card image zone (image loaded async via loadTCGdexImages)
+  const cardImgHtml = `
+    <div class="card__tcg-img-wrap">
+      <div class="card__tcg-skeleton"></div>
+      <img
+        class="card__tcg-img"
+        data-set="${setId}"
+        data-num="${card.n}"
+        alt="${card.en}"
+        loading="lazy"
+      />
+      <div class="card__tcg-fallback">
+        ${fallbackHtml}
+      </div>
+    </div>
+  `;
 
   return `
     <div
@@ -253,24 +251,73 @@ function renderCard(setId, card) {
       data-owned="${isOwned}"
       onclick="toggleCard('${setId}', '${card.n}')"
     >
-      <div class="card__number">${setId.toUpperCase()} #${card.n}</div>
-      <div class="card__sprite-zone">${spriteHtml}</div>
+      <div class="card__number">#${card.n} <span class="card__rarity-pip-inline card__rarity-pip-inline--${card.r}"></span></div>
+      <div class="card__sprite-zone card__sprite-zone--tcg">
+        ${cardImgHtml}
+      </div>
       <div class="card__name">${getCardName(card)}</div>
       <div class="card__name-sub">${getCardSubName(card)}</div>
-      <div class="card__footer">
-        <div class="card__rarity-pip"></div>
-        <span class="card__type">${card.t}</span>
-      </div>
     </div>
   `;
 }
 
 
 /* ============================================================
+   POKECARDEX CDN IMAGE LOADER
+============================================================ */
+
+/**
+ * Charge les images depuis le CDN pokecardex pour toutes les cartes du set.
+ * URL : https://pokecardex-scans.b-cdn.net/sets_jp/{cdnSet}/{img}.jpg?class=md
+ * Skeleton → vraie image JP → fallback pixel art si échec.
+ */
+function loadTCGdexImages(setId, cards) {
+  const cdnSet = SETS[setId]?.cdnSet;
+
+  cards.forEach(card => {
+    const imgEl = document.querySelector(
+      `.card__tcg-img[data-set="${setId}"][data-num="${card.n}"]`
+    );
+    if (!imgEl) return;
+
+    const wrap    = imgEl.closest('.card__tcg-img-wrap');
+    const skeleton = wrap?.querySelector('.card__tcg-skeleton');
+    const fallback = wrap?.querySelector('.card__tcg-fallback');
+
+    if (!cdnSet || !card.img) {
+      skeleton?.remove();
+      imgEl.remove();
+      if (fallback) fallback.classList.add('card__tcg-fallback--visible');
+      return;
+    }
+
+    const url = getPokecardexUrl(cdnSet, card.img);
+    imgEl.src = url;
+
+    imgEl.onload = () => {
+      skeleton?.classList.add('card__tcg-skeleton--hidden');
+      imgEl.classList.add('card__tcg-img--loaded');
+      if (fallback) fallback.style.display = 'none';
+    };
+    imgEl.onerror = () => {
+      skeleton?.remove();
+      imgEl.remove();
+      if (fallback) fallback.classList.add('card__tcg-fallback--visible');
+    };
+  });
+}
+
+/* ============================================================
    INTERACTIONS CARTES
 ============================================================ */
 
 function toggleCard(setId, cardNumber) {
+  // Lock mode: open flip modal instead of toggling
+  if (lockMode) {
+    const card = SETS[setId]?.cards.find(c => c.n === cardNumber);
+    if (card) openCardModal(setId, card);
+    return;
+  }
   const key = cardKey(setId, cardNumber);
   collection[key] = !collection[key];
   saveCollection();
@@ -437,7 +484,7 @@ function selectSet(setId) {
   // Exit showcase mode on tab change
   if (showcaseMode) {
     showcaseMode = false;
-    document.getElementById('btn-showcase-toggle')?.classList.remove('toolbar__btn--showcase--active');
+    document.getElementById('btn-showcase-toggle')?.classList.remove('active');
     currentFilter = 'all';
   }
 
@@ -485,6 +532,7 @@ function setLanguage(lang) {
   document.getElementById('btn-import').textContent = labels.import;
   document.getElementById('btn-reset').textContent     = labels.reset;
   document.getElementById('btn-showcase').textContent  = labels.showcase;
+  document.getElementById('btn-lock').textContent      = lockMode ? labels.unlock : labels.lock;
 
   // Set tab names
   Object.keys(SETS).forEach(setId => {
@@ -493,16 +541,6 @@ function setLanguage(lang) {
   });
   const extrasTabEl = document.getElementById('tab-extras');
   if (extrasTabEl) extrasTabEl.textContent = labels.extrasTab;
-
-  // Rarity labels
-  document.querySelectorAll('.rarity-divider').forEach(el => {
-    const rarity = el.dataset.rarity;
-    if (rarity) {
-      const countEl = el.querySelector('.rarity-divider__count');
-      const countText = countEl ? countEl.outerHTML : '';
-      el.innerHTML = RARITY_LABELS[lang][rarity] + ' ' + countText;
-    }
-  });
 
   // Update card names without full re-render
   document.querySelectorAll('.card').forEach(el => {
@@ -682,7 +720,7 @@ function toggleShowcase() {
   const btn    = document.getElementById('btn-showcase-toggle');
   const container = document.getElementById('cards-container');
 
-  btn.classList.toggle('toolbar__btn--showcase--active', showcaseMode);
+  btn.classList.toggle('active', showcaseMode);
 
   if (showcaseMode) {
     // Filter to owned only and apply showcase class
@@ -718,6 +756,189 @@ function updateFilterButtons() {
 }
 
 
+
+/* ============================================================
+   LOCK MODE
+============================================================ */
+
+let lockMode = true; // locked by default
+
+function toggleLock() {
+  lockMode = !lockMode;
+  updateLockUI();
+  document.body.classList.toggle('lock-mode', lockMode);
+  showToast(lockMode ? '🔒 Collection verrouillée' : '🔓 Collection déverrouillée');
+}
+
+function updateLockUI() {
+  const btn     = document.getElementById('btn-lock-toggle');
+  const iconEl  = document.getElementById('btn-lock-icon');
+  const labelEl = document.getElementById('btn-lock');
+
+  btn.classList.toggle('active', lockMode);
+  if (iconEl)  iconEl.textContent  = lockMode ? '🔒' : '🔓';
+  // Short label: always 4 chars max for the compact button
+  if (labelEl) labelEl.textContent = lockMode ? 'LOCK' : 'EDIT';
+}
+
+/* Settings dropdown */
+function toggleSettingsMenu() {
+  document.getElementById('settings-dropdown').classList.toggle('settings-menu__dropdown--open');
+}
+
+function closeSettingsMenu() {
+  document.getElementById('settings-dropdown').classList.remove('settings-menu__dropdown--open');
+}
+
+// Close dropdown on outside click
+document.addEventListener('click', e => {
+  const menu = document.getElementById('settings-menu');
+  if (menu && !menu.contains(e.target)) closeSettingsMenu();
+});
+
+/* ============================================================
+   CARD FLIP MODAL
+============================================================ */
+
+let _pokeDescCache = {};
+
+async function openCardModal(setId, card) {
+  const modal = document.getElementById('card-modal');
+  const flip  = document.getElementById('card-modal-flip');
+  const img   = document.getElementById('card-modal-img');
+  const loader = document.getElementById('card-modal-img-loader');
+  const info  = document.getElementById('card-modal-info');
+
+  // Reset flip to back
+  flip.classList.remove('card-modal__flip--flipped');
+  img.src = '';
+  loader.style.display = 'block';
+  info.innerHTML = '';
+
+  // Show modal
+  modal.classList.add('card-modal--visible');
+
+  // Image JP pokecardex CDN — haute résolution (class=lg)
+  const cdnSet = SETS[setId]?.cdnSet;
+  const jpImgUrl = cdnSet && card.img
+    ? `https://pokecardex-scans.b-cdn.net/sets_jp/${cdnSet}/${card.img}.jpg?class=lg`
+    : null;
+
+  if (jpImgUrl) {
+    img.src = jpImgUrl;
+    img.onload  = () => { loader.style.display = 'none'; };
+    img.onerror = () => { loader.textContent = '🃏'; };
+  } else {
+    loader.textContent = '🃏';
+  }
+  setTimeout(() => flip.classList.add('card-modal__flip--flipped'), 200);
+
+  // Build info panel immediately
+  const rarityLabels = { common: 'Commune', uncommon: 'Peu commune', rare: 'Rare', holo: 'Holo Rare' };
+  const setNames = { base: 'Set de Base (1996)', jungle: 'Jungle (1997)', fossil: 'Fossile (1997)', rocket: 'Rocket (1997)' };
+  const isOwned  = !!collection[cardKey(setId, card.n)];
+  const tcgQuery = encodeURIComponent(`${card.en} ${setNames[setId] || ''}`);
+  const tcgUrl   = `https://www.tcgplayer.com/search/pokemon/product?q=${tcgQuery}&view=grid`;
+
+  let descHtml = '';
+  if (card.d) {
+    descHtml = `<div class="card-modal__desc" id="modal-desc">⏳ Chargement de la description...</div>`;
+    // Fetch description async
+    fetchPokeDesc(card.d).then(desc => {
+      const el = document.getElementById('modal-desc');
+      if (el) el.textContent = desc;
+    });
+  }
+
+  info.innerHTML = `
+    <div class="card-modal__info-row">
+      <span class="card-modal__info-label">Carte</span>
+      <span class="card-modal__info-value">${card.fr || card.en} <span style="color:var(--muted)">#${card.n}</span></span>
+    </div>
+    <div class="card-modal__info-row">
+      <span class="card-modal__info-label">Set</span>
+      <span class="card-modal__info-value">${setNames[setId] || setId}</span>
+    </div>
+    <div class="card-modal__info-row">
+      <span class="card-modal__info-label">Rareté</span>
+      <span class="card-modal__info-value card-modal__info-value--gold">${rarityLabels[card.r] || card.r}</span>
+    </div>
+    <div class="card-modal__info-row">
+      <span class="card-modal__info-label">Statut</span>
+      <span class="card-modal__info-value ${isOwned ? 'card-modal__info-value--green' : ''}">${isOwned ? '✓ Possédée' : '✗ Manquante'}</span>
+    </div>
+    <div class="card-modal__info-row">
+      <span class="card-modal__info-label">Prix</span>
+      <span class="card-modal__info-value">
+        <a class="card-modal__tcgplayer" href="${tcgUrl}" target="_blank" rel="noopener">Voir sur TCGPlayer →</a>
+      </span>
+    </div>
+    ${descHtml}
+  `;
+}
+
+let _tcgImgCache   = {};  // card image URLs
+let _tcgSetCache   = {};  // full set card lists from API
+
+async function fetchTCGdexImage(setId, card) {
+  const cacheKey = `${setId}-${card.n}`;
+  if (_tcgImgCache[cacheKey] !== undefined) return _tcgImgCache[cacheKey];
+
+  const tcgSetId = TCGDEX_SET[setId];
+  if (!tcgSetId) { _tcgImgCache[cacheKey] = null; return null; }
+
+  try {
+    // Fetch the full set once and cache it (endpoint returns {cards:[{id,image,localId,name}]})
+    if (!_tcgSetCache[tcgSetId]) {
+      const res  = await fetch(`https://api.tcgdex.net/v2/en/sets/${tcgSetId}`);
+      const data = await res.json();
+      _tcgSetCache[tcgSetId] = data.cards || [];
+    }
+
+    const setCards = _tcgSetCache[tcgSetId];
+
+    // Find by exact EN name match
+    const norm = s => s?.toLowerCase().replace(/[^a-z0-9]/g, '');
+    const match = setCards.find(c => norm(c.name) === norm(card.en));
+
+    if (match?.image) {
+      const url = `${match.image}/high.webp`;
+      _tcgImgCache[cacheKey] = url;
+      return url;
+    }
+
+    _tcgImgCache[cacheKey] = null;
+    return null;
+
+  } catch(e) {
+    _tcgImgCache[cacheKey] = null;
+    return null;
+  }
+}
+
+async function fetchPokeDesc(dexId) {
+  if (_pokeDescCache[dexId]) return _pokeDescCache[dexId];
+  try {
+    const res  = await fetch(`https://pokeapi.co/api/v2/pokemon-species/${dexId}/`);
+    const data = await res.json();
+    const entry = data.flavor_text_entries?.find(e => e.language.name === 'fr')
+               || data.flavor_text_entries?.find(e => e.language.name === 'en');
+    const desc = entry?.flavor_text.replace(/\f|\n/g, ' ') || '—';
+    _pokeDescCache[dexId] = desc;
+    return desc;
+  } catch { return '—'; }
+}
+
+function closeCardModal() {
+  const modal = document.getElementById('card-modal');
+  modal.classList.remove('card-modal--visible');
+}
+
+// Close on Escape key
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') closeCardModal();
+});
+
 /* ============================================================
    INITIALISATION
 ============================================================ */
@@ -725,6 +946,10 @@ function updateFilterButtons() {
 loadCollection();
 selectSet('base');
 updateTabCounters();
+
+// Apply default lock mode on startup
+document.body.classList.add('lock-mode');
+updateLockUI();
 
 // Load Poké Ball sprite as favicon via canvas (bypasses external URL restriction)
 (function() {

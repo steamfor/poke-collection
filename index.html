@@ -59,6 +59,19 @@
           <span class="stats__label" id="stat-pct-lbl">COMPLET</span>
         </div>
       </div>
+
+      <!-- Settings dropdown -->
+      <div class="settings-menu" id="settings-menu">
+        <button class="settings-menu__trigger" onclick="toggleSettingsMenu()" aria-label="Options">⚙️</button>
+        <div class="settings-menu__dropdown" id="settings-dropdown">
+          <button class="settings-menu__item" onclick="exportCollection(); closeSettingsMenu()">💾 <span id="btn-export">EXPORTER</span></button>
+          <button class="settings-menu__item" onclick="document.getElementById('import-input').click(); closeSettingsMenu()">📂 <span id="btn-import">IMPORTER</span></button>
+          <div class="settings-menu__divider"></div>
+          <button class="settings-menu__item settings-menu__item--danger" onclick="confirmReset(); closeSettingsMenu()">🗑 <span id="btn-reset">RESET</span></button>
+        </div>
+      </div>
+      <input type="file" id="import-input" accept=".json" style="display:none" onchange="importCollection(event)" />
+
     </div>
   </header>
 
@@ -66,35 +79,40 @@
        SET NAVIGATION
   ============================================================ -->
   <nav class="set-nav">
-    <button class="set-nav__tab set-nav__tab--active" data-set="base"   onclick="selectSet('base')">
-      <span class="set-nav__dot" style="background:#e53935"></span><span id="tab-base">SET DE BASE</span>
-    </button>
-    <button class="set-nav__tab" data-set="jungle" onclick="selectSet('jungle')">
-      <span class="set-nav__dot" style="background:#43a047"></span><span id="tab-jungle">JUNGLE</span>
-    </button>
-    <button class="set-nav__tab" data-set="fossil" onclick="selectSet('fossil')">
-      <span class="set-nav__dot" style="background:#c89020"></span><span id="tab-fossil">FOSSIL</span>
-    </button>
-    <button class="set-nav__tab" data-set="rocket" onclick="selectSet('rocket')">
-      <span class="set-nav__dot" style="background:#7986cb"></span><span id="tab-rocket">ROCKET</span>
-    </button>
-    <button class="set-nav__tab" data-set="extras" onclick="selectSet('extras')">
-      <span class="set-nav__dot" style="background:#ff9800"></span><span id="tab-extras">EXTRAS</span>
-    </button>
+    <div class="set-nav__tabs">
+      <button class="set-nav__tab set-nav__tab--active" data-set="base"   onclick="selectSet('base')">
+        <span class="set-nav__dot" style="background:#e53935"></span><span id="tab-base">SET DE BASE</span>
+      </button>
+      <button class="set-nav__tab" data-set="jungle" onclick="selectSet('jungle')">
+        <span class="set-nav__dot" style="background:#43a047"></span><span id="tab-jungle">JUNGLE</span>
+      </button>
+      <button class="set-nav__tab" data-set="fossil" onclick="selectSet('fossil')">
+        <span class="set-nav__dot" style="background:#c89020"></span><span id="tab-fossil">FOSSIL</span>
+      </button>
+      <button class="set-nav__tab" data-set="rocket" onclick="selectSet('rocket')">
+        <span class="set-nav__dot" style="background:#7986cb"></span><span id="tab-rocket">ROCKET</span>
+      </button>
+      <button class="set-nav__tab" data-set="extras" onclick="selectSet('extras')">
+        <span class="set-nav__dot" style="background:#ff9800"></span><span id="tab-extras">EXTRAS</span>
+      </button>
+    </div>
+
+    </div>
+
   </nav>
 
   </div><!-- end .sticky-nav -->
 
-  <!-- ============================================================
-       TOOLBAR
-  ============================================================ -->
-  <div class="toolbar">
-    <button class="toolbar__btn toolbar__btn--export" onclick="exportCollection()">💾 <span id="btn-export">EXPORTER</span></button>
-    <button class="toolbar__btn toolbar__btn--import" onclick="document.getElementById('import-input').click()">📂 <span id="btn-import">IMPORTER</span></button>
-    <button class="toolbar__btn toolbar__btn--reset"  onclick="confirmReset()">🗑 <span id="btn-reset">RESET</span></button>
-    <button class="toolbar__btn toolbar__btn--showcase" id="btn-showcase-toggle" onclick="toggleShowcase()">✨ <span id="btn-showcase">SHOWCASE</span></button>
-    <input type="file" id="import-input" accept=".json" style="display:none" onchange="importCollection(event)" />
-    <span class="toolbar__hint">← sauvegarde / restaure ta collection</span>
+  <!-- FAB — floating action buttons -->
+  <div class="fab-group">
+    <button class="fab fab--lock active" id="btn-lock-toggle" onclick="toggleLock()" aria-label="Verrouiller">
+      <span class="fab__icon" id="btn-lock-icon">🔒</span>
+      <span class="fab__label" id="btn-lock">LOCK</span>
+    </button>
+    <button class="fab fab--showcase" id="btn-showcase-toggle" onclick="toggleShowcase()" aria-label="Showcase">
+      <span class="fab__icon">✨</span>
+      <span class="fab__label" id="btn-showcase">SHOW</span>
+    </button>
   </div>
 
   <!-- ============================================================
@@ -138,7 +156,7 @@
   <footer class="footer">
     <div>Made with <span class="footer__heart">♥</span> by Steamfor — 2026</div>
     <div>PokeCollection is not affiliated with Nintendo / Game Freak / The Pokemon Company</div>
-    <div>Sprites by <a href="https://pokeapi.co" target="_blank">PokeAPI</a></div>
+    <div>Sprites by <a href="https://pokeapi.co" target="_blank">PokeAPI</a> — Card images by <a href="https://tcgdex.net" target="_blank">TCGdex</a></div>
   </footer>
 
 
@@ -146,6 +164,26 @@
   <script src="js/app.js"></script>
   <!-- Confetti canvas -->
   <canvas id="confetti-canvas" style="position:fixed;inset:0;pointer-events:none;z-index:999;display:none;"></canvas>
+
+  <!-- Card flip modal -->
+  <div id="card-modal" class="card-modal" onclick="closeCardModal()">
+    <div class="card-modal__inner" onclick="event.stopPropagation()">
+      <button class="card-modal__close" onclick="closeCardModal()">✕</button>
+      <div class="card-modal__flip-wrap">
+        <div class="card-modal__flip" id="card-modal-flip">
+          <div class="card-modal__face card-modal__face--back">
+            <img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/items/poke-ball.png"
+                 class="card-modal__back-logo" alt="back" />
+          </div>
+          <div class="card-modal__face card-modal__face--front">
+            <img id="card-modal-img" src="" alt="" class="card-modal__img" />
+            <div id="card-modal-img-loader" class="card-modal__loader">⏳</div>
+          </div>
+        </div>
+      </div>
+      <div class="card-modal__info" id="card-modal-info"></div>
+    </div>
+  </div>
 
 </body>
 </html>
