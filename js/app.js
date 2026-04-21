@@ -124,6 +124,62 @@ let currentFilter = 'all';
 let showcaseMode = false;
 let currentExtraSort = 'none';
 let currentLang = 'fr';
+let editingExtraIdx = null;
+
+/** Pokémon name cache for datalist autocomplete */
+const POKEMON_NAMES_KEY = 'pkm-pokedex-names-v1';
+let pokemonNamesCache = null;
+
+function normalizePokemonSlug(slug) {
+  const overrides = {
+    'nidoran-f': 'Nidoran♀', 'nidoran-m': 'Nidoran♂',
+    'mr-mime': 'Mr. Mime', 'farfetchd': "Farfetch'd",
+    'mime-jr': 'Mime Jr.', 'porygon2': 'Porygon2',
+    'porygon-z': 'Porygon-Z', 'ho-oh': 'Ho-Oh',
+    'type-null': 'Type: Null', 'mr-rime': 'Mr. Rime',
+    'sirfetchd': "Sirfetch'd", 'jangmo-o': 'Jangmo-o',
+    'hakamo-o': 'Hakamo-o', 'kommo-o': 'Kommo-o',
+    'tapu-koko': 'Tapu Koko', 'tapu-lele': 'Tapu Lele',
+    'tapu-bulu': 'Tapu Bulu', 'tapu-fini': 'Tapu Fini',
+  };
+  if (overrides[slug]) return overrides[slug];
+  return slug.split('-').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join('-');
+}
+
+async function loadPokemonNames() {
+  if (pokemonNamesCache) return pokemonNamesCache;
+  const cached = localStorage.getItem(POKEMON_NAMES_KEY);
+  if (cached) { pokemonNamesCache = JSON.parse(cached); return pokemonNamesCache; }
+  try {
+    const res = await fetch('https://pokeapi.co/api/v2/pokemon?limit=1025');
+    const data = await res.json();
+    pokemonNamesCache = data.results.map((p, i) => ({
+      d: i + 1,
+      name: normalizePokemonSlug(p.name),
+    }));
+    localStorage.setItem(POKEMON_NAMES_KEY, JSON.stringify(pokemonNamesCache));
+  } catch { pokemonNamesCache = []; }
+  return pokemonNamesCache;
+}
+
+async function updatePokemonDatalist() {
+  const names = await loadPokemonNames();
+  const dl = document.getElementById('pokemon-datalist');
+  if (!dl || !names.length) return;
+  dl.innerHTML = names.map(p => {
+    const dex = String(p.d).padStart(3, '0');
+    return `<option value="${dex} - ${p.name}">`;
+  }).join('');
+}
+
+function onPokemonSearchInput() {
+  const val = document.getElementById('extra-pokemon-search')?.value || '';
+  const match = val.match(/^(\d{1,4})\s*-/);
+  if (match) {
+    const dexField = document.getElementById('extra-dex');
+    if (dexField) dexField.value = parseInt(match[1], 10);
+  }
+}
 
 /** localStorage key */
 const STORAGE_KEY = 'pkm-collection-v1';
@@ -491,6 +547,7 @@ function selectSet(setId) {
   if (setId === 'extras') {
     renderExtras();
   } else {
+    editingExtraIdx = null;
     renderSet(setId);
   }
   updateStats();
@@ -996,9 +1053,10 @@ function saveExtras(list) {
 function renderExtras() {
   const labels = UI_LABELS[currentLang];
   const extras = loadExtras();
+  const editCard = editingExtraIdx !== null ? extras[editingExtraIdx] : null;
 
   const typeOptions = EXTRA_TYPES[currentLang].map(t =>
-    `<option value="${t.emoji}">${t.emoji} ${t.label}</option>`
+    `<option value="${t.emoji}" ${editCard && editCard.t === t.emoji ? 'selected' : ''}>${t.emoji} ${t.label}</option>`
   ).join('');
 
   // Apply sort
@@ -1026,35 +1084,56 @@ function renderExtras() {
         }).join('')}
        </div>`;
 
+  const isEditing = editingExtraIdx !== null;
+  const editBanner = isEditing
+    ? `<div class="extras-form__edit-banner">✎ ${labels.extrasEditing} — EXTRA #${String(editingExtraIdx + 1).padStart(3, '0')}</div>`
+    : '';
+
   document.getElementById('cards-container').innerHTML = `
+    <datalist id="pokemon-datalist"></datalist>
     <div class="set-header">
       <span class="set-header__name">${labels.extrasTab}</span>
       <span class="set-header__jp">カスタム</span>
     </div>
-    <div class="extras-form">
+    <div class="extras-form${isEditing ? ' extras-form--editing' : ''}">
+      ${editBanner}
       <input
         type="text"
         id="extra-name"
         class="extras-form__input"
         placeholder="${labels.extrasName}"
         maxlength="40"
+        value="${editCard ? editCard.name.replace(/"/g, '&quot;') : ''}"
       />
       <select id="extra-type" class="extras-form__select">
         ${typeOptions}
       </select>
       <input
+        type="text"
+        id="extra-pokemon-search"
+        class="extras-form__input"
+        placeholder="${labels.extrasPokemonSearch}"
+        list="pokemon-datalist"
+        oninput="onPokemonSearchInput()"
+        autocomplete="off"
+      />
+      <input
         type="number"
         id="extra-dex"
         class="extras-form__input"
         placeholder="${labels.extrasDex}"
-        min="1" max="151"
+        min="1" max="1025"
+        value="${editCard && editCard.d ? editCard.d : ''}"
       />
-      <button class="extras-form__btn" onclick="addExtraCard()">
-        ✚ ${labels.extrasAdd}
+      <button class="extras-form__btn${isEditing ? ' extras-form__btn--save' : ''}" onclick="addExtraCard()">
+        ${isEditing ? `✎ ${labels.extrasSave}` : `✚ ${labels.extrasAdd}`}
       </button>
+      ${isEditing ? `<button class="extras-form__btn extras-form__btn--cancel" onclick="cancelEditExtra()">✕ ${labels.extrasCancel}</button>` : ''}
     </div>
     ${cardsHtml}
   `;
+
+  updatePokemonDatalist();
 }
 
 function setExtraSort(sort) {
@@ -1075,8 +1154,9 @@ function renderExtraCard(card, idx) {
        /><span class="card__sprite-fallback" style="display:none">${card.t}</span>`
     : `<span class="card__sprite-fallback">${card.t}</span>`;
 
+  const isBeingEdited = editingExtraIdx === idx;
   return `
-    <div class="card card--owned card--extra">
+    <div class="card card--owned card--extra${isBeingEdited ? ' card--extra-editing' : ''}">
       <div class="card__number">EXTRA #${String(idx + 1).padStart(3, '0')}</div>
       <div class="card__sprite-zone">${spriteHtml}</div>
       <div class="card__name">${card.name}</div>
@@ -1085,12 +1165,13 @@ function renderExtraCard(card, idx) {
         <div class="card__rarity-pip"></div>
         <span class="card__type">${card.t}</span>
       </div>
+      <button class="card__edit-btn" onclick="startEditExtra(${idx})" title="${UI_LABELS[currentLang].extrasEdit}">✎</button>
       <button class="card__delete-btn" onclick="deleteExtraCard(${idx})" title="${UI_LABELS[currentLang].extrasDelete}">✕</button>
     </div>
   `;
 }
 
-/** Add a new extra card */
+/** Add a new extra card (or save edit if in edit mode) */
 function addExtraCard() {
   const name = document.getElementById('extra-name').value.trim();
   const type = document.getElementById('extra-type').value;
@@ -1102,15 +1183,40 @@ function addExtraCard() {
   }
 
   const list = loadExtras();
-  list.push({ name, t: type, d: dex });
-  saveExtras(list);
+
+  if (editingExtraIdx !== null) {
+    list[editingExtraIdx] = { name, t: type, d: dex };
+    editingExtraIdx = null;
+    saveExtras(list);
+    renderExtras();
+    updateStats();
+    showToast('✎ ' + name);
+  } else {
+    list.push({ name, t: type, d: dex });
+    saveExtras(list);
+    renderExtras();
+    updateStats();
+    showToast('✚ ' + name);
+  }
+}
+
+/** Start editing an extra card — pre-fills form */
+function startEditExtra(idx) {
+  editingExtraIdx = idx;
   renderExtras();
-  updateStats();
-  showToast('✚ ' + name);
+  document.getElementById('cards-container').scrollTop = 0;
+  document.getElementById('extra-name')?.focus();
+}
+
+/** Cancel edit mode without saving */
+function cancelEditExtra() {
+  editingExtraIdx = null;
+  renderExtras();
 }
 
 /** Delete an extra card by index */
 function deleteExtraCard(idx) {
+  if (editingExtraIdx === idx) { editingExtraIdx = null; }
   const list    = loadExtras();
   const removed = list.splice(idx, 1);
   saveExtras(list);

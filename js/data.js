@@ -7,9 +7,11 @@
 const getPokecardexUrl = (setCode, pos) =>
   `https://pokecardex-scans.b-cdn.net/sets_jp/${setCode}/${pos}.jpg?class=md`;
 
-/** Gen 1 pixel art sprite (fallback) */
+/** Pokémon sprite — pixel art Gen 1 pour #1-151, standard pour les suivants */
 const getSpriteUrl = (dexId) =>
-  `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/versions/generation-i/red-blue/transparent/${dexId}.png`;
+  dexId <= 151
+    ? `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/versions/generation-i/red-blue/transparent/${dexId}.png`
+    : `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${dexId}.png`;
 
 /** PokeAPI item sprite (fallback trainers) */
 const getItemSpriteUrl = (slug) =>
@@ -25,21 +27,21 @@ const UI_LABELS = {
         imported: 'cartes importées !', resetDone: '🗑 Collection réinitialisée',
         resetTitle: 'REMETTRE', resetCards: 'CARTES À ZÉRO ?', resetHint: 'Cette action est irréversible.\nPense à exporter avant !',
         resetYes: 'OUI, RESET', resetNo: 'ANNULER',
-        extrasTab: 'EXTRAS', extrasAdd: 'AJOUTER', extrasName: 'Nom de la carte', extrasType: 'Type', extrasDex: 'N° Pokédex (optionnel)', extrasEmpty: 'Aucune carte extra. Ajoute-en une !', extrasDelete: 'Supprimer', sortDefault: 'DÉFAUT', sortName: 'NOM', sortType: 'TYPE', showcase: 'SHOWCASE', lock: 'VERROUILLER', unlock: 'DÉVERROUILLER' },
+        extrasTab: 'EXTRAS', extrasAdd: 'AJOUTER', extrasName: 'Nom de la carte', extrasType: 'Type', extrasDex: 'N° Pokédex (optionnel)', extrasEmpty: 'Aucune carte extra. Ajoute-en une !', extrasDelete: 'Supprimer', extrasEdit: 'Modifier', extrasSave: 'MODIFIER', extrasCancel: 'ANNULER', extrasEditing: 'ÉDITION', extrasPokemonSearch: 'CHERCHER POKÉMON', extrasPokemonPlaceholder: 'Ex: Pikachu, Charizard...', sortDefault: 'DÉFAUT', sortName: 'NOM', sortType: 'TYPE', showcase: 'SHOWCASE', lock: 'VERROUILLER', unlock: 'DÉVERROUILLER' },
   en: { owned: 'OWNED', total: 'TOTAL', complete: 'COMPLETE', all: 'ALL', yes: 'OWNED', no: 'MISSING', search: '🔍 Search...', subtitle: 'TRACKER — JAPANESE EDITION',
         export: 'EXPORT', import: 'IMPORT', reset: 'RESET',
         noCards: '⚠️ No cards to export!', alreadyEmpty: '⚠️ Collection is already empty!',
         imported: 'cards imported!', resetDone: '🗑 Collection reset',
         resetTitle: 'RESET', resetCards: 'CARDS?', resetHint: 'This cannot be undone.\nExport first just in case!',
         resetYes: 'YES, RESET', resetNo: 'CANCEL',
-        extrasTab: 'EXTRAS', extrasAdd: 'ADD', extrasName: 'Card name', extrasType: 'Type', extrasDex: 'Pokédex # (optional)', extrasEmpty: 'No extra cards yet. Add one!', extrasDelete: 'Delete', sortDefault: 'DEFAULT', sortName: 'NAME', sortType: 'TYPE', showcase: 'SHOWCASE', lock: 'LOCK', unlock: 'UNLOCK' },
+        extrasTab: 'EXTRAS', extrasAdd: 'ADD', extrasName: 'Card name', extrasType: 'Type', extrasDex: 'Pokédex # (optional)', extrasEmpty: 'No extra cards yet. Add one!', extrasDelete: 'Delete', extrasEdit: 'Edit', extrasSave: 'SAVE', extrasCancel: 'CANCEL', extrasEditing: 'EDITING', extrasPokemonSearch: 'SEARCH POKÉMON', extrasPokemonPlaceholder: 'Ex: Pikachu, Charizard...', sortDefault: 'DEFAULT', sortName: 'NAME', sortType: 'TYPE', showcase: 'SHOWCASE', lock: 'LOCK', unlock: 'UNLOCK' },
   jp: { owned: '所持済み', total: '合計', complete: '完成度', all: '全て', yes: '所持済み', no: '未所持', search: '🔍 検索...', subtitle: 'トラッカー — 日本語版',
         export: 'エクスポート', import: 'インポート', reset: 'リセット',
         noCards: '⚠️ エクスポートするカードがありません！', alreadyEmpty: '⚠️ コレクションはすでに空です！',
         imported: '枚のカードをインポートしました！', resetDone: '🗑 コレクションをリセットしました',
         resetTitle: 'リセット', resetCards: '枚をリセット？', resetHint: 'この操作は取り消せません。\n先にエクスポートしてください！',
         resetYes: 'リセット', resetNo: 'キャンセル',
-        extrasTab: 'EXTRAS', extrasAdd: '追加', extrasName: 'カード名', extrasType: 'タイプ', extrasDex: '図鑑番号（任意）', extrasEmpty: 'エクストラカードがありません', extrasDelete: '削除', sortDefault: 'デフォルト', sortName: '名前', sortType: 'タイプ', showcase: 'ショーケース', lock: 'ロック', unlock: 'ロック解除' },
+        extrasTab: 'EXTRAS', extrasAdd: '追加', extrasName: 'カード名', extrasType: 'タイプ', extrasDex: '図鑑番号（任意）', extrasEmpty: 'エクストラカードがありません', extrasDelete: '削除', extrasEdit: '編集', extrasSave: '保存', extrasCancel: 'キャンセル', extrasEditing: '編集中', extrasPokemonSearch: 'ポケモン検索', extrasPokemonPlaceholder: '例: Pikachu...', sortDefault: 'デフォルト', sortName: '名前', sortType: 'タイプ', showcase: 'ショーケース', lock: 'ロック', unlock: 'ロック解除' },
 };
 
 const RARITY_LABELS = {
