@@ -121,10 +121,90 @@ let currentFilter = 'all';
 /** Extras sort: 'none' | 'name' | 'type' */
 
 /** Showcase mode active */
-let showcaseMode = false;
 let currentExtraSort = 'none';
 let currentLang = 'fr';
 let editingExtraIdx = null;
+let albumMode    = false;
+let readOnlyMode = false;
+
+/** Copies (doublons) storage */
+const COPIES_KEY = 'pkm-copies-v1';
+let copiesData = {};
+
+function loadCopies() {
+  try { copiesData = JSON.parse(localStorage.getItem(COPIES_KEY) || '{}'); }
+  catch { copiesData = {}; }
+}
+function saveCopies() {
+  try { localStorage.setItem(COPIES_KEY, JSON.stringify(copiesData)); }
+  catch { showToast('⚠️ Impossible de sauvegarder'); }
+}
+function getCopies(key) { return copiesData[key] || 1; }
+function setCopies(key, n) {
+  if (n <= 1) delete copiesData[key];
+  else copiesData[key] = n;
+  saveCopies();
+}
+function incrementCopies(setId, cardN) {
+  if (readOnlyMode || lockMode) return;
+  const key = cardKey(setId, cardN);
+  if (!collection[key]) return;
+  setCopies(key, getCopies(key) + 1);
+  const badge = document.querySelector(`[data-key="${key}"] .card__copies-badge`);
+  if (badge) { badge.textContent = `×${getCopies(key)}`; badge.style.display = ''; }
+  else {
+    const el = document.querySelector(`[data-key="${key}"]`);
+    if (el) {
+      const b = document.createElement('span');
+      b.className = 'card__copies-badge';
+      b.textContent = `×${getCopies(key)}`;
+      b.onclick = (e) => { e.stopPropagation(); decrementCopies(setId, cardN); };
+      b.title = UI_LABELS[currentLang].copiesHint;
+      el.appendChild(b);
+    }
+  }
+}
+function decrementCopies(setId, cardN) {
+  if (readOnlyMode || lockMode) return;
+  const key = cardKey(setId, cardN);
+  const n = getCopies(key) - 1;
+  setCopies(key, n);
+  const badge = document.querySelector(`[data-key="${key}"] .card__copies-badge`);
+  if (n <= 1 && badge) badge.remove();
+  else if (badge) badge.textContent = `×${n}`;
+}
+
+/** Condition storage */
+const CONDITION_KEY = 'pkm-condition-v1';
+const CONDITION_CYCLE = [null, 'mint', 'nm', 'played', 'damaged'];
+const CONDITION_COLOR = { mint: '#00c895', nm: '#8bc34a', played: '#ff9800', damaged: '#ff5555' };
+let conditionData = {};
+
+function loadConditions() {
+  try { conditionData = JSON.parse(localStorage.getItem(CONDITION_KEY) || '{}'); }
+  catch { conditionData = {}; }
+}
+function saveConditions() {
+  try { localStorage.setItem(CONDITION_KEY, JSON.stringify(conditionData)); }
+  catch { showToast('⚠️ Impossible de sauvegarder'); }
+}
+function getCondition(key) { return conditionData[key] || null; }
+function cycleCondition(key) {
+  if (readOnlyMode || lockMode) return;
+  const cur   = getCondition(key);
+  const idx   = CONDITION_CYCLE.indexOf(cur);
+  const next  = CONDITION_CYCLE[(idx + 1) % CONDITION_CYCLE.length];
+  if (next === null) delete conditionData[key];
+  else conditionData[key] = next;
+  saveConditions();
+  const dot = document.querySelector(`[data-key="${key}"] .card__condition-dot`);
+  if (dot) {
+    dot.style.background  = next ? CONDITION_COLOR[next] : '';
+    dot.dataset.cond      = next || '';
+    dot.classList.toggle('card__condition-dot--set', !!next);
+    dot.title = next ? UI_LABELS[currentLang][`cond${next.charAt(0).toUpperCase() + next.slice(1)}`] : UI_LABELS[currentLang].condNone;
+  }
+}
 
 /** Pokémon name cache for datalist autocomplete */
 const POKEMON_NAMES_KEY = 'pkm-pokedex-names-v1';
@@ -265,6 +345,23 @@ function renderCard(setId, card) {
     isOwned ? 'card--owned' : '',
   ].filter(Boolean).join(' ');
 
+  const copies    = isOwned ? getCopies(key) : 1;
+  const condition = isOwned ? getCondition(key) : null;
+  const condColor = condition ? CONDITION_COLOR[condition] : '';
+  const condLabel = condition ? (UI_LABELS[currentLang][`cond${condition.charAt(0).toUpperCase() + condition.slice(1)}`] || condition) : UI_LABELS[currentLang].condNone;
+
+  const copiesBadgeHtml = (isOwned && copies > 1 && !readOnlyMode)
+    ? `<span class="card__copies-badge" onclick="event.stopPropagation();decrementCopies('${setId}','${card.n}')" title="${UI_LABELS[currentLang].copiesHint}">×${copies}</span>`
+    : (isOwned && copies > 1 ? `<span class="card__copies-badge card__copies-badge--ro">×${copies}</span>` : '');
+
+  const copiesBtnHtml = (isOwned && !readOnlyMode)
+    ? `<button class="card__copies-btn" onclick="event.stopPropagation();incrementCopies('${setId}','${card.n}')" title="+1">+</button>`
+    : '';
+
+  const condDotHtml = isOwned
+    ? `<span class="card__condition-dot${condition ? ' card__condition-dot--set' : ''}" style="${condColor ? `background:${condColor}` : ''}" data-cond="${condition || ''}" onclick="event.stopPropagation();cycleCondition('${key}')" title="${condLabel}"></span>`
+    : '';
+
   // Build fallback sprite (pixel art GB or item or emoji)
   const fallbackHtml = card.d
     ? `<img
@@ -305,8 +402,11 @@ function renderCard(setId, card) {
       data-key="${key}"
       data-names="${getAllCardNames(card)}"
       data-owned="${isOwned}"
-      onclick="toggleCard('${setId}', '${card.n}')"
+      onclick="${readOnlyMode ? '' : `toggleCard('${setId}', '${card.n}')`}"
     >
+      ${condDotHtml}
+      ${copiesBadgeHtml}
+      ${copiesBtnHtml}
       <div class="card__number">#${card.n} <span class="card__rarity-pip-inline card__rarity-pip-inline--${card.r}"></span></div>
       <div class="card__sprite-zone card__sprite-zone--tcg">
         ${cardImgHtml}
@@ -497,8 +597,10 @@ function applyFilters() {
   const query = normalize(document.getElementById('search-input').value.trim());
 
   document.querySelectorAll('.card').forEach(el => {
-    const matchesSearch = !query || el.dataset.names.includes(query);
+    const matchesSearch = !query || el.dataset.names?.includes(query);
+    // In album mode, all slots are always visible (filter only applied to search)
     const matchesFilter =
+      albumMode            ||
       currentFilter === 'all'    ||
       (currentFilter === 'owned'   && el.dataset.owned === 'true') ||
       (currentFilter === 'missing' && el.dataset.owned === 'false');
@@ -537,15 +639,23 @@ function selectSet(setId) {
     tab.classList.toggle('set-nav__tab--active', tab.dataset.set === setId);
   });
 
-  // Exit showcase mode on tab change
-  if (showcaseMode) {
-    showcaseMode = false;
-    document.getElementById('btn-showcase-toggle')?.classList.remove('active');
+  // Exit album mode on tab change
+  if (albumMode) {
+    albumMode = false;
+    document.getElementById('btn-album-toggle')?.classList.remove('active');
+    document.getElementById('cards-container')?.classList.remove('album-mode');
     currentFilter = 'all';
   }
 
+  // Album/lock FABs only make sense on card sets
+  const isCardSet = !['extras', 'stats'].includes(setId);
+  document.getElementById('btn-album-toggle').style.display = isCardSet ? '' : 'none';
+
   if (setId === 'extras') {
     renderExtras();
+  } else if (setId === 'stats') {
+    editingExtraIdx = null;
+    renderStats();
   } else {
     editingExtraIdx = null;
     renderSet(setId);
@@ -587,9 +697,11 @@ function setLanguage(lang) {
   // Toolbar buttons
   document.getElementById('btn-export').textContent = labels.export;
   document.getElementById('btn-import').textContent = labels.import;
-  document.getElementById('btn-reset').textContent     = labels.reset;
-  document.getElementById('btn-showcase').textContent  = labels.showcase;
-  document.getElementById('btn-lock').textContent      = lockMode ? labels.unlock : labels.lock;
+  document.getElementById('btn-reset').textContent  = labels.reset;
+  const shareEl = document.getElementById('btn-share');
+  if (shareEl) shareEl.textContent = labels.share;
+  document.getElementById('btn-album').textContent  = labels.albumMode;
+  document.getElementById('btn-lock').textContent   = lockMode ? labels.unlock : labels.lock;
 
   // Set tab names
   Object.keys(SETS).forEach(setId => {
@@ -598,6 +710,8 @@ function setLanguage(lang) {
   });
   const extrasTabEl = document.getElementById('tab-extras');
   if (extrasTabEl) extrasTabEl.textContent = labels.extrasTab;
+  const statsTabEl = document.getElementById('tab-stats');
+  if (statsTabEl) statsTabEl.textContent = labels.statsTab;
 
   // Update card names without full re-render
   document.querySelectorAll('.card').forEach(el => {
@@ -616,6 +730,75 @@ function setLanguage(lang) {
 
 
 /* ============================================================
+   SHARE — URL-based read-only collection view
+============================================================ */
+
+function shareCollection() {
+  const labels = UI_LABELS[currentLang];
+  const ownedKeys = Object.keys(collection).filter(k => collection[k]);
+  if (!ownedKeys.length) { showToast(labels.noCards); return; }
+
+  const payload = {
+    v:  2,
+    c:  ownedKeys,
+    e:  loadExtras(),
+    cp: { ...copiesData },
+    co: { ...conditionData },
+  };
+  try {
+    const encoded = btoa(unescape(encodeURIComponent(JSON.stringify(payload))));
+    const url     = `${location.origin}${location.pathname}?share=${encoded}`;
+    navigator.clipboard.writeText(url)
+      .then(() => showToast(labels.shareSuccess))
+      .catch(() => {
+        // Fallback: show URL in a prompt
+        prompt(labels.shareSuccess, url);
+      });
+  } catch {
+    showToast('⚠️ Impossible de générer le lien');
+  }
+}
+
+function initShareMode() {
+  const param = new URLSearchParams(location.search).get('share');
+  if (!param) return;
+
+  try {
+    const payload = JSON.parse(decodeURIComponent(escape(atob(param))));
+    if (!payload?.c) return;
+
+    // Override collection, copies, conditions with shared data (in-memory only)
+    collection    = {};
+    payload.c.forEach(k => { collection[k] = true; });
+    copiesData    = payload.cp || {};
+    conditionData = payload.co || {};
+    readOnlyMode  = true;
+
+    // Save extras temporarily (not to localStorage)
+    if (Array.isArray(payload.e)) saveExtras(payload.e);
+
+    // Show banner
+    const banner = document.getElementById('share-banner');
+    const text   = document.getElementById('share-banner-text');
+    if (banner) { banner.style.display = ''; }
+    if (text)   { text.textContent = UI_LABELS[currentLang].shareView; }
+
+    // Hide settings menu (no edit in read-only)
+    document.getElementById('settings-menu')?.style.setProperty('display', 'none');
+    // Hide lock FAB
+    document.getElementById('btn-lock-toggle')?.style.setProperty('display', 'none');
+
+  } catch {
+    showToast('⚠️ Lien de partage invalide');
+  }
+}
+
+function exitShareMode() {
+  // Reload without ?share= param — restores own localStorage collection
+  location.href = location.origin + location.pathname;
+}
+
+/* ============================================================
    EXPORT / IMPORT / RESET
 ============================================================ */
 
@@ -629,10 +812,12 @@ function exportCollection() {
   }
 
   const exportData = {
-    version:    1,
+    version:    2,
     date:       new Date().toISOString().slice(0, 10),
     collection: collection,
     extras:     loadExtras(),
+    copies:     copiesData,
+    conditions: conditionData,
   };
   const json = JSON.stringify(exportData, null, 2);
   const uri  = 'data:application/json;charset=utf-8,' + encodeURIComponent(json);
@@ -665,9 +850,9 @@ function importCollection(event) {
 
       const count = Object.keys(imported).filter(k => imported[k]).length;
       Object.assign(collection, imported);
-      if (Array.isArray(parsed.extras)) {
-        saveExtras(parsed.extras);
-      }
+      if (Array.isArray(parsed.extras))                      saveExtras(parsed.extras);
+      if (parsed.copies    && typeof parsed.copies === 'object')    { Object.assign(copiesData, parsed.copies);    saveCopies();     }
+      if (parsed.conditions && typeof parsed.conditions === 'object') { Object.assign(conditionData, parsed.conditions); saveConditions(); }
       saveCollection();
       selectSet(currentSet);
       showToast(`📂 ${count} ${labels.imported}`);
@@ -707,9 +892,13 @@ function confirmReset() {
 
 function resetCollection() {
   const labels = UI_LABELS[currentLang];
-  collection   = {};
+  collection    = {};
+  copiesData    = {};
+  conditionData = {};
   saveCollection();
   saveExtras([]);
+  saveCopies();
+  saveConditions();
   closeModal();
   selectSet(currentSet);
   showToast(labels.resetDone);
@@ -768,40 +957,28 @@ function showToast(message, type = 'normal') {
 
 
 /* ============================================================
-   SHOWCASE MODE
+   ALBUM MODE
 ============================================================ */
 
-function toggleShowcase() {
-  showcaseMode = !showcaseMode;
+function toggleAlbum() {
+  if (currentSet === 'extras' || currentSet === 'stats') return;
+  albumMode = !albumMode;
 
-  const btn    = document.getElementById('btn-showcase-toggle');
+  const btn       = document.getElementById('btn-album-toggle');
   const container = document.getElementById('cards-container');
 
-  btn.classList.toggle('active', showcaseMode);
+  btn.classList.toggle('active', albumMode);
 
-  if (showcaseMode) {
-    // Filter to owned only and apply showcase class
-    container.classList.add('showcase-mode');
-    const prevFilter = currentFilter;
-    currentFilter = 'owned';
-    updateFilterButtons();
-    applyFilters();
-
-    // Hide missing cards entirely in showcase
-    document.querySelectorAll('.card:not(.card--owned)').forEach(el => {
-      el.style.display = 'none';
-    });
-
-    showToast('✨ Showcase activé');
-  } else {
-    container.classList.remove('showcase-mode');
-    document.querySelectorAll('.card').forEach(el => {
-      el.style.display = '';
-    });
+  if (albumMode) {
+    container.classList.add('album-mode');
+    // Force "all" filter so every slot is visible
     currentFilter = 'all';
     updateFilterButtons();
     applyFilters();
-    showToast('✨ Showcase désactivé');
+    showToast('📖 Mode Album activé');
+  } else {
+    container.classList.remove('album-mode');
+    showToast('📖 Mode Album désactivé');
   }
 }
 
@@ -1001,6 +1178,9 @@ document.addEventListener('keydown', e => {
 ============================================================ */
 
 loadCollection();
+loadCopies();
+loadConditions();
+initShareMode();
 selectSet('base');
 updateTabCounters();
 
@@ -1047,6 +1227,111 @@ function saveExtras(list) {
   } catch {
     showToast('⚠️ Impossible de sauvegarder');
   }
+}
+
+/* ============================================================
+   STATS TAB
+============================================================ */
+
+function renderStats() {
+  const labels = UI_LABELS[currentLang];
+  const copies = copiesData;
+
+  // Per-set breakdown
+  const setRows = Object.keys(SETS).map(setId => {
+    const set     = SETS[setId];
+    const total   = set.cards.length;
+    const owned   = countOwned(setId);
+    const pct     = total ? Math.round(owned / total * 100) : 0;
+    const color   = { base: '#e53935', jungle: '#43a047', fossil: '#c89020', rocket: '#7986cb' }[setId] || '#ff9800';
+    return `
+      <div class="stats-row">
+        <div class="stats-row__label"><span class="stats-row__dot" style="background:${color}"></span>${set.name[currentLang]}</div>
+        <div class="stats-row__count">${owned}<span class="stats-row__sep">/</span>${total}</div>
+        <div class="stats-row__bar"><div class="stats-row__fill" style="width:${pct}%;background:${color}"></div></div>
+        <div class="stats-row__pct">${pct}%</div>
+      </div>`;
+  }).join('');
+
+  // Per-rarity breakdown (all sets combined)
+  const rarityTotals = { holo: [0,0], rare: [0,0], uncommon: [0,0], common: [0,0] };
+  Object.keys(SETS).forEach(setId => {
+    SETS[setId].cards.forEach(c => {
+      if (rarityTotals[c.r]) {
+        rarityTotals[c.r][1]++;
+        if (collection[cardKey(setId, c.n)]) rarityTotals[c.r][0]++;
+      }
+    });
+  });
+  const rarityColors = { holo: '#ffd700', rare: '#a78bfa', uncommon: '#60a5fa', common: '#9ca3af' };
+  const rarityLabels = RARITY_LABELS[currentLang];
+  const rarityRows = Object.entries(rarityTotals).map(([r, [owned, total]]) => {
+    const pct = total ? Math.round(owned / total * 100) : 0;
+    return `
+      <div class="stats-row">
+        <div class="stats-row__label">${rarityLabels[r]}</div>
+        <div class="stats-row__count">${owned}<span class="stats-row__sep">/</span>${total}</div>
+        <div class="stats-row__bar"><div class="stats-row__fill" style="width:${pct}%;background:${rarityColors[r]}"></div></div>
+        <div class="stats-row__pct">${pct}%</div>
+      </div>`;
+  }).join('');
+
+  // Doublons summary
+  const validDoublons = Object.entries(copies).filter(([key, n]) => n > 1 && collection[key]);
+  const doublonCount  = validDoublons.reduce((sum, [, n]) => sum + (n - 1), 0);
+  const doublonsHtml  = validDoublons.length === 0
+    ? `<div class="stats-empty">${labels.statsNoDoublons}</div>`
+    : `<div class="stats-doublons-count">+${doublonCount} ${labels.statsDoublons.toLowerCase()}</div>
+       <button class="stats-export-btn" onclick="exportDoublonsList()">${labels.statsExportDoublons}</button>`;
+
+  // Global numbers
+  let globalTotal = 0, globalOwned = 0;
+  Object.keys(SETS).forEach(s => { globalTotal += SETS[s].cards.length; globalOwned += countOwned(s); });
+  const extrasArr = loadExtras();
+  globalTotal += extrasArr.length; globalOwned += extrasArr.length;
+  const globalPct = globalTotal ? Math.round(globalOwned / globalTotal * 100) : 0;
+
+  document.getElementById('cards-container').innerHTML = `
+    <div class="set-header">
+      <span class="set-header__name">${labels.statsTab}</span>
+      <span class="set-header__jp">統計</span>
+    </div>
+    <div class="stats-page">
+      <div class="stats-global">
+        <div class="stats-global__numbers">${globalOwned} <span class="stats-global__sep">/</span> ${globalTotal}</div>
+        <div class="stats-global__pct">${globalPct}%</div>
+        <div class="stats-global__bar"><div class="stats-global__fill" style="width:${globalPct}%"></div></div>
+        <div class="stats-global__label">${labels.statsGlobal}</div>
+      </div>
+      <div class="stats-section">
+        <div class="stats-section__title">${labels.statsPerSet}</div>
+        ${setRows}
+      </div>
+      <div class="stats-section">
+        <div class="stats-section__title">${labels.statsPerRarity}</div>
+        ${rarityRows}
+      </div>
+      <div class="stats-section">
+        <div class="stats-section__title">${labels.statsDoublons}</div>
+        ${doublonsHtml}
+      </div>
+    </div>
+  `;
+}
+
+function exportDoublonsList() {
+  const labels = UI_LABELS[currentLang];
+  const lines  = [];
+  Object.entries(copiesData).forEach(([key, n]) => {
+    if (n <= 1 || !collection[key]) return;
+    const [setId, cardN] = key.split('|');
+    const card = SETS[setId]?.cards.find(c => c.n === cardN);
+    if (!card) return;
+    lines.push(`×${n - 1}  ${card[currentLang] || card.fr}  (${SETS[setId].name[currentLang]})`);
+  });
+  if (!lines.length) { showToast(labels.statsNoDoublons); return; }
+  navigator.clipboard?.writeText(lines.join('\n')).then(() => showToast('📋 Liste copiée !'))
+    .catch(() => showToast('⚠️ Copie impossible'));
 }
 
 /** Render the EXTRAS tab */
