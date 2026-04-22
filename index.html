@@ -66,6 +66,7 @@
         <div class="settings-menu__dropdown" id="settings-dropdown">
           <button class="settings-menu__item" onclick="exportCollection(); closeSettingsMenu()">💾 <span id="btn-export">EXPORTER</span></button>
           <button class="settings-menu__item" onclick="document.getElementById('import-input').click(); closeSettingsMenu()">📂 <span id="btn-import">IMPORTER</span></button>
+          <button class="settings-menu__item" onclick="shareCollection(); closeSettingsMenu()">🔗 <span id="btn-share">PARTAGER</span></button>
           <div class="settings-menu__divider"></div>
           <button class="settings-menu__item settings-menu__item--danger" onclick="confirmReset(); closeSettingsMenu()">🗑 <span id="btn-reset">RESET</span></button>
         </div>
@@ -95,6 +96,9 @@
       <button class="set-nav__tab" data-set="extras" onclick="selectSet('extras')">
         <span class="set-nav__dot" style="background:#ff9800"></span><span id="tab-extras">EXTRAS</span>
       </button>
+      <button class="set-nav__tab" data-set="stats" onclick="selectSet('stats')">
+        <span class="set-nav__dot" style="background:#4fc3f7"></span><span id="tab-stats">STATS</span>
+      </button>
     </div>
 
     </div>
@@ -109,9 +113,9 @@
       <span class="fab__icon" id="btn-lock-icon">🔒</span>
       <span class="fab__label" id="btn-lock">LOCK</span>
     </button>
-    <button class="fab fab--showcase" id="btn-showcase-toggle" onclick="toggleShowcase()" aria-label="Showcase">
-      <span class="fab__icon">✨</span>
-      <span class="fab__label" id="btn-showcase">SHOW</span>
+    <button class="fab fab--album" id="btn-album-toggle" onclick="toggleAlbum()" aria-label="Mode Album">
+      <span class="fab__icon">📖</span>
+      <span class="fab__label" id="btn-album">ALBUM</span>
     </button>
   </div>
 
@@ -142,6 +146,12 @@
         <div class="progress__fill" id="progress-fill" style="width: 0%"></div>
       </div>
     </div>
+  </div>
+
+  <!-- Read-only share banner (hidden by default) -->
+  <div class="share-banner" id="share-banner" style="display:none">
+    <span class="share-banner__text" id="share-banner-text">📤 COLLECTION PARTAGÉE</span>
+    <button class="share-banner__close" onclick="exitShareMode()">✕ FERMER</button>
   </div>
 
   <!-- ============================================================
