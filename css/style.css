@@ -682,8 +682,8 @@ body {
   opacity: 0.4;
 }
 
-/* Not-owned fallback: silhouette */
-.card:not(.card--owned) .card__tcg-fallback .card__sprite { filter: brightness(0); opacity: 0.15; }
+/* Not-owned fallback: dim silhouette (visible when CDN images unavailable) */
+.card:not(.card--owned) .card__tcg-fallback .card__sprite { filter: brightness(0.2) saturate(0); opacity: 0.5; }
 .card--owned .card__tcg-fallback .card__sprite { filter: contrast(1.1) drop-shadow(0 0 5px rgba(0,232,154,0.3)); }
 .card--owned .card__tcg-fallback .card__sprite--item { filter: contrast(1.1) drop-shadow(0 0 6px rgba(255,200,50,0.6)); }
 

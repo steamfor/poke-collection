@@ -304,7 +304,7 @@ function renderCard(setId, card) {
     <div
       class="${classes}"
       data-key="${key}"
-      data-names="${getAllCardNames(card)}"
+      data-names="${getAllCardNames(card).replace(/"/g, '&quot;')}"
       data-owned="${isOwned}"
       onclick="${readOnlyMode ? '' : `toggleCard('${setId}', '${card.n}')`}"
     >
@@ -540,13 +540,14 @@ function selectSet(setId) {
     tab.classList.toggle('set-nav__tab--active', tab.dataset.set === setId);
   });
 
-  // Exit album mode on tab change
+  // Exit album mode on tab change and reset filter
   if (albumMode) {
     albumMode = false;
     document.getElementById('btn-album-toggle')?.classList.remove('active');
     document.getElementById('cards-container')?.classList.remove('album-mode');
-    currentFilter = 'all';
   }
+  currentFilter = 'all';
+  updateFilterButtons();
 
   // Album/lock FABs only make sense on card sets
   const isCardSet = !['extras', 'stats'].includes(setId);
@@ -1129,7 +1130,7 @@ function renderStats() {
     const total   = set.cards.length;
     const owned   = countOwned(setId);
     const pct     = total ? Math.round(owned / total * 100) : 0;
-    const color   = { base: '#e53935', jungle: '#43a047', fossil: '#c89020', rocket: '#7986cb' }[setId] || '#ff9800';
+    const color   = { base: '#e53935', jungle: '#43a047', fossil: '#c89020', rocket: '#7986cb', gym1: '#8bc34a', gym2: '#5c6bc0', vmblue: '#1e88e5', vmred: '#e53935', vmgreen: '#43a047', promo: '#f9a825' }[setId] || '#ff9800';
     return `
       <div class="stats-row">
         <div class="stats-row__label"><span class="stats-row__dot" style="background:${color}"></span>${set.name[currentLang]}</div>

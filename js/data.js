@@ -602,7 +602,7 @@ const SETS = {
   vmblue: {
     name: { fr: 'VENDING MACHINE (BLUE)', en: 'Vending Machine (Blue)', jp: '拡張シート第１弾' },
     subtitle: '拡張シート第１弾 1998',
-    cdnSet: 'VC1',
+    cdnSet: 'VM1',
     cards: [
       { n:'vb01', img:1,  jp:'フシギダネ',   fr:'Bulbizarre',             en:'Bulbasaur',          r:'rare', t:'🌿', d:1   },
       { n:'vb02', img:2,  jp:'キャタピー',   fr:'Chenipan',               en:'Caterpie',           r:'rare', t:'🐛', d:10  },
@@ -645,7 +645,7 @@ const SETS = {
   vmred: {
     name: { fr: 'VENDING MACHINE (RED)', en: 'Vending Machine (Red)', jp: '拡張シート第２弾' },
     subtitle: '拡張シート第２弾 1998',
-    cdnSet: 'VC2',
+    cdnSet: 'VM2',
     cards: [
       { n:'vr01', img:1,  jp:'モルフォン',   fr:'Aéromite',               en:'Venomoth',           r:'rare', t:'🐛', d:49  },
       { n:'vr02', img:2,  jp:'ベトベター',   fr:'Tadmorv',                en:'Grimer',             r:'rare', t:'☁️', d:88  },
@@ -688,7 +688,7 @@ const SETS = {
   vmgreen: {
     name: { fr: 'VENDING MACHINE (GREEN)', en: 'Vending Machine (Green)', jp: '拡張シート第３弾' },
     subtitle: '拡張シート第３弾 1998',
-    cdnSet: 'VC3',
+    cdnSet: 'VM3',
     cards: [
       { n:'vg01', img:1,  jp:'アーボック',         fr:'Arbok',                          en:'Arbok',                   r:'rare', t:'☁️', d:24  },
       { n:'vg02', img:2,  jp:'ニドリーナ',         fr:'Nidorina',                       en:'Nidorina',                r:'rare', t:'💜', d:30  },
@@ -729,7 +729,7 @@ const SETS = {
       { n:'vg37', img:37, jp:'４枚サイドのしょうぶ',fr:'Match à 4 Récompenses',         en:'4 Prize Match',           r:'rare', t:'🃏', item:'poke-ball'    },
       { n:'vg38', img:38, jp:'こんらんで20ダメージ',fr:'20 dégâts de la Confusion',     en:'20 Confusion Damage',     r:'rare', t:'🃏', item:'poke-ball'    },
       { n:'vg39', img:39, jp:'さんまいのデッキのしょうぶ',fr:'Match à 3 decks',        en:'3-Deck Match',            r:'rare', t:'🃏', item:'poke-ball'    },
-      { n:'vg40', img:40, jp:'チームバトル！',     fr:'Match en équipe "Triopikeur"',   en:'Team Match Triopikeur',   r:'rare', t:'🃏', item:'poke-ball'    },
+      { n:'vg40', img:40, jp:'チームバトル！',     fr:'Match en équipe «Triopikeur»',   en:'Team Match Triopikeur',   r:'rare', t:'🃏', item:'poke-ball'    },
       { n:'vg41', img:41, jp:'デッキこうかん',     fr:'Échange de Deck',                en:'Deck Swap',               r:'rare', t:'🃏', item:'poke-ball'    },
       { n:'vg42', img:42, jp:'おおやまのピカチュウ',fr:'Pikachu de Ooyama',             en:"Ooyama's Pikachu",        r:'rare', t:'⚡', d:25   },
       { n:'vg43', img:43, jp:'イマクニ？のパソコン',fr:'PC de Imakuni?',               en:"Imakuni?'s PC",           r:'rare', t:'🃏', item:'poke-ball'    },
@@ -748,7 +748,7 @@ const SETS = {
   promo: {
     name: { fr: 'PROMOS NON NUMÉROTÉES', en: 'Unnumbered Promotional', jp: '非売品プロモ' },
     subtitle: 'Unnumbered Promotional 1996–',
-    cdnSet: 'PROMO',
+    cdnSet: 'UPC',
     cards: [
       { n:'pr001', img:1,   jp:'ピカチュウ',             fr:'Pikachu',                          en:'Pikachu',                        r:'rare', t:'⚡', d:25  },
       { n:'pr002', img:2,   jp:'プリン',                 fr:'Rondoudou',                        en:'Jigglypuff',                     r:'rare', t:'✨', d:39  },
