@@ -127,85 +127,6 @@ let editingExtraIdx = null;
 let albumMode    = false;
 let readOnlyMode = false;
 
-/** Copies (doublons) storage */
-const COPIES_KEY = 'pkm-copies-v1';
-let copiesData = {};
-
-function loadCopies() {
-  try { copiesData = JSON.parse(localStorage.getItem(COPIES_KEY) || '{}'); }
-  catch { copiesData = {}; }
-}
-function saveCopies() {
-  try { localStorage.setItem(COPIES_KEY, JSON.stringify(copiesData)); }
-  catch { showToast('⚠️ Impossible de sauvegarder'); }
-}
-function getCopies(key) { return copiesData[key] || 1; }
-function setCopies(key, n) {
-  if (n <= 1) delete copiesData[key];
-  else copiesData[key] = n;
-  saveCopies();
-}
-function incrementCopies(setId, cardN) {
-  if (readOnlyMode || lockMode) return;
-  const key = cardKey(setId, cardN);
-  if (!collection[key]) return;
-  setCopies(key, getCopies(key) + 1);
-  const badge = document.querySelector(`[data-key="${key}"] .card__copies-badge`);
-  if (badge) { badge.textContent = `×${getCopies(key)}`; badge.style.display = ''; }
-  else {
-    const el = document.querySelector(`[data-key="${key}"]`);
-    if (el) {
-      const b = document.createElement('span');
-      b.className = 'card__copies-badge';
-      b.textContent = `×${getCopies(key)}`;
-      b.onclick = (e) => { e.stopPropagation(); decrementCopies(setId, cardN); };
-      b.title = UI_LABELS[currentLang].copiesHint;
-      el.appendChild(b);
-    }
-  }
-}
-function decrementCopies(setId, cardN) {
-  if (readOnlyMode || lockMode) return;
-  const key = cardKey(setId, cardN);
-  const n = getCopies(key) - 1;
-  setCopies(key, n);
-  const badge = document.querySelector(`[data-key="${key}"] .card__copies-badge`);
-  if (n <= 1 && badge) badge.remove();
-  else if (badge) badge.textContent = `×${n}`;
-}
-
-/** Condition storage */
-const CONDITION_KEY = 'pkm-condition-v1';
-const CONDITION_CYCLE = [null, 'mint', 'nm', 'played', 'damaged'];
-const CONDITION_COLOR = { mint: '#00c895', nm: '#8bc34a', played: '#ff9800', damaged: '#ff5555' };
-let conditionData = {};
-
-function loadConditions() {
-  try { conditionData = JSON.parse(localStorage.getItem(CONDITION_KEY) || '{}'); }
-  catch { conditionData = {}; }
-}
-function saveConditions() {
-  try { localStorage.setItem(CONDITION_KEY, JSON.stringify(conditionData)); }
-  catch { showToast('⚠️ Impossible de sauvegarder'); }
-}
-function getCondition(key) { return conditionData[key] || null; }
-function cycleCondition(key) {
-  if (readOnlyMode || lockMode) return;
-  const cur   = getCondition(key);
-  const idx   = CONDITION_CYCLE.indexOf(cur);
-  const next  = CONDITION_CYCLE[(idx + 1) % CONDITION_CYCLE.length];
-  if (next === null) delete conditionData[key];
-  else conditionData[key] = next;
-  saveConditions();
-  const dot = document.querySelector(`[data-key="${key}"] .card__condition-dot`);
-  if (dot) {
-    dot.style.background  = next ? CONDITION_COLOR[next] : '';
-    dot.dataset.cond      = next || '';
-    dot.classList.toggle('card__condition-dot--set', !!next);
-    dot.title = next ? UI_LABELS[currentLang][`cond${next.charAt(0).toUpperCase() + next.slice(1)}`] : UI_LABELS[currentLang].condNone;
-  }
-}
-
 /** Pokémon name cache for datalist autocomplete */
 const POKEMON_NAMES_KEY = 'pkm-pokedex-names-v1';
 let pokemonNamesCache = null;
@@ -345,23 +266,6 @@ function renderCard(setId, card) {
     isOwned ? 'card--owned' : '',
   ].filter(Boolean).join(' ');
 
-  const copies    = isOwned ? getCopies(key) : 1;
-  const condition = isOwned ? getCondition(key) : null;
-  const condColor = condition ? CONDITION_COLOR[condition] : '';
-  const condLabel = condition ? (UI_LABELS[currentLang][`cond${condition.charAt(0).toUpperCase() + condition.slice(1)}`] || condition) : UI_LABELS[currentLang].condNone;
-
-  const copiesBadgeHtml = (isOwned && copies > 1 && !readOnlyMode)
-    ? `<span class="card__copies-badge" onclick="event.stopPropagation();decrementCopies('${setId}','${card.n}')" title="${UI_LABELS[currentLang].copiesHint}">×${copies}</span>`
-    : (isOwned && copies > 1 ? `<span class="card__copies-badge card__copies-badge--ro">×${copies}</span>` : '');
-
-  const copiesBtnHtml = (isOwned && !readOnlyMode)
-    ? `<button class="card__copies-btn" onclick="event.stopPropagation();incrementCopies('${setId}','${card.n}')" title="+1">+</button>`
-    : '';
-
-  const condDotHtml = isOwned
-    ? `<span class="card__condition-dot${condition ? ' card__condition-dot--set' : ''}" style="${condColor ? `background:${condColor}` : ''}" data-cond="${condition || ''}" onclick="event.stopPropagation();cycleCondition('${key}')" title="${condLabel}"></span>`
-    : '';
-
   // Build fallback sprite (pixel art GB or item or emoji)
   const fallbackHtml = card.d
     ? `<img
@@ -404,9 +308,6 @@ function renderCard(setId, card) {
       data-owned="${isOwned}"
       onclick="${readOnlyMode ? '' : `toggleCard('${setId}', '${card.n}')`}"
     >
-      ${condDotHtml}
-      ${copiesBadgeHtml}
-      ${copiesBtnHtml}
       <div class="card__number">#${card.n} <span class="card__rarity-pip-inline card__rarity-pip-inline--${card.r}"></span></div>
       <div class="card__sprite-zone card__sprite-zone--tcg">
         ${cardImgHtml}
@@ -742,8 +643,6 @@ function shareCollection() {
     v:  2,
     c:  ownedKeys,
     e:  loadExtras(),
-    cp: { ...copiesData },
-    co: { ...conditionData },
   };
   try {
     const encoded = btoa(unescape(encodeURIComponent(JSON.stringify(payload))));
@@ -767,12 +666,10 @@ function initShareMode() {
     const payload = JSON.parse(decodeURIComponent(escape(atob(param))));
     if (!payload?.c) return;
 
-    // Override collection, copies, conditions with shared data (in-memory only)
-    collection    = {};
+    // Override collection with shared data (in-memory only)
+    collection = {};
     payload.c.forEach(k => { collection[k] = true; });
-    copiesData    = payload.cp || {};
-    conditionData = payload.co || {};
-    readOnlyMode  = true;
+    readOnlyMode = true;
 
     // Save extras temporarily (not to localStorage)
     if (Array.isArray(payload.e)) saveExtras(payload.e);
@@ -816,8 +713,6 @@ function exportCollection() {
     date:       new Date().toISOString().slice(0, 10),
     collection: collection,
     extras:     loadExtras(),
-    copies:     copiesData,
-    conditions: conditionData,
   };
   const json = JSON.stringify(exportData, null, 2);
   const uri  = 'data:application/json;charset=utf-8,' + encodeURIComponent(json);
@@ -850,9 +745,7 @@ function importCollection(event) {
 
       const count = Object.keys(imported).filter(k => imported[k]).length;
       Object.assign(collection, imported);
-      if (Array.isArray(parsed.extras))                      saveExtras(parsed.extras);
-      if (parsed.copies    && typeof parsed.copies === 'object')    { Object.assign(copiesData, parsed.copies);    saveCopies();     }
-      if (parsed.conditions && typeof parsed.conditions === 'object') { Object.assign(conditionData, parsed.conditions); saveConditions(); }
+      if (Array.isArray(parsed.extras)) saveExtras(parsed.extras);
       saveCollection();
       selectSet(currentSet);
       showToast(`📂 ${count} ${labels.imported}`);
@@ -892,13 +785,9 @@ function confirmReset() {
 
 function resetCollection() {
   const labels = UI_LABELS[currentLang];
-  collection    = {};
-  copiesData    = {};
-  conditionData = {};
+  collection = {};
   saveCollection();
   saveExtras([]);
-  saveCopies();
-  saveConditions();
   closeModal();
   selectSet(currentSet);
   showToast(labels.resetDone);
@@ -1069,7 +958,7 @@ async function openCardModal(setId, card) {
 
   // Build info panel immediately
   const rarityLabels = { common: 'Commune', uncommon: 'Peu commune', rare: 'Rare', holo: 'Holo Rare' };
-  const setNames = { base: 'Set de Base (1996)', jungle: 'Jungle (1997)', fossil: 'Fossile (1997)', rocket: 'Rocket (1997)' };
+  const setNames = { base: 'Set de Base (1996)', jungle: 'Jungle (1997)', fossil: 'Fossile (1997)', rocket: 'Rocket (1997)', gym1: "Leaders' Stadium (1998)", gym2: 'Challenge from the Darkness (1999)', vmblue: 'Vending Machine Blue (1998)', vmred: 'Vending Machine Red (1998)', vmgreen: 'Vending Machine Green (1998)', promo: 'Unnumbered Promotional (1996–)' };
   const isOwned  = !!collection[cardKey(setId, card.n)];
   const tcgQuery = encodeURIComponent(`${card.en} ${setNames[setId] || ''}`);
   const tcgUrl   = `https://www.tcgplayer.com/search/pokemon/product?q=${tcgQuery}&view=grid`;
@@ -1178,8 +1067,6 @@ document.addEventListener('keydown', e => {
 ============================================================ */
 
 loadCollection();
-loadCopies();
-loadConditions();
 initShareMode();
 selectSet('base');
 updateTabCounters();
@@ -1235,7 +1122,6 @@ function saveExtras(list) {
 
 function renderStats() {
   const labels = UI_LABELS[currentLang];
-  const copies = copiesData;
 
   // Per-set breakdown
   const setRows = Object.keys(SETS).map(setId => {
@@ -1276,14 +1162,6 @@ function renderStats() {
       </div>`;
   }).join('');
 
-  // Doublons summary
-  const validDoublons = Object.entries(copies).filter(([key, n]) => n > 1 && collection[key]);
-  const doublonCount  = validDoublons.reduce((sum, [, n]) => sum + (n - 1), 0);
-  const doublonsHtml  = validDoublons.length === 0
-    ? `<div class="stats-empty">${labels.statsNoDoublons}</div>`
-    : `<div class="stats-doublons-count">+${doublonCount} ${labels.statsDoublons.toLowerCase()}</div>
-       <button class="stats-export-btn" onclick="exportDoublonsList()">${labels.statsExportDoublons}</button>`;
-
   // Global numbers
   let globalTotal = 0, globalOwned = 0;
   Object.keys(SETS).forEach(s => { globalTotal += SETS[s].cards.length; globalOwned += countOwned(s); });
@@ -1311,28 +1189,10 @@ function renderStats() {
         <div class="stats-section__title">${labels.statsPerRarity}</div>
         ${rarityRows}
       </div>
-      <div class="stats-section">
-        <div class="stats-section__title">${labels.statsDoublons}</div>
-        ${doublonsHtml}
-      </div>
     </div>
   `;
 }
 
-function exportDoublonsList() {
-  const labels = UI_LABELS[currentLang];
-  const lines  = [];
-  Object.entries(copiesData).forEach(([key, n]) => {
-    if (n <= 1 || !collection[key]) return;
-    const [setId, cardN] = key.split('|');
-    const card = SETS[setId]?.cards.find(c => c.n === cardN);
-    if (!card) return;
-    lines.push(`×${n - 1}  ${card[currentLang] || card.fr}  (${SETS[setId].name[currentLang]})`);
-  });
-  if (!lines.length) { showToast(labels.statsNoDoublons); return; }
-  navigator.clipboard?.writeText(lines.join('\n')).then(() => showToast('📋 Liste copiée !'))
-    .catch(() => showToast('⚠️ Copie impossible'));
-}
 
 /** Render the EXTRAS tab */
 function renderExtras() {
