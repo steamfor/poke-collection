@@ -1130,7 +1130,7 @@ function renderStats() {
     const total   = set.cards.length;
     const owned   = countOwned(setId);
     const pct     = total ? Math.round(owned / total * 100) : 0;
-    const color   = { base: '#e53935', jungle: '#43a047', fossil: '#c89020', rocket: '#7986cb' }[setId] || '#ff9800';
+    const color   = { base: '#e53935', jungle: '#43a047', fossil: '#c89020', rocket: '#7986cb', gym1: '#8bc34a', gym2: '#5c6bc0', vmblue: '#1e88e5', vmred: '#e53935', vmgreen: '#43a047', promo: '#f9a825' }[setId] || '#ff9800';
     return `
       <div class="stats-row">
         <div class="stats-row__label"><span class="stats-row__dot" style="background:${color}"></span>${set.name[currentLang]}</div>
