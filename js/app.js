@@ -958,7 +958,7 @@ async function openCardModal(setId, card) {
 
   // Build info panel immediately
   const rarityLabels = { common: 'Commune', uncommon: 'Peu commune', rare: 'Rare', holo: 'Holo Rare' };
-  const setNames = { base: 'Set de Base (1996)', jungle: 'Jungle (1997)', fossil: 'Fossile (1997)', rocket: 'Rocket (1997)', gym1: "Leaders' Stadium (1998)", gym2: 'Challenge from the Darkness (1999)', vmblue: 'Vending Machine Blue (1998)', vmred: 'Vending Machine Red (1998)', vmgreen: 'Vending Machine Green (1998)' };
+  const setNames = { base: 'Set de Base (1996)', jungle: 'Jungle (1997)', fossil: 'Fossile (1997)', rocket: 'Rocket (1997)', gym1: "Leaders' Stadium (1998)", gym2: 'Challenge from the Darkness (1999)', vmblue: 'Vending Machine Blue (1998)', vmred: 'Vending Machine Red (1998)', vmgreen: 'Vending Machine Green (1998)', promo: 'Unnumbered Promotional (1996–)' };
   const isOwned  = !!collection[cardKey(setId, card.n)];
   const tcgQuery = encodeURIComponent(`${card.en} ${setNames[setId] || ''}`);
   const tcgUrl   = `https://www.tcgplayer.com/search/pokemon/product?q=${tcgQuery}&view=grid`;
