@@ -752,8 +752,8 @@ const SETS = {
     cards: [
       { n:'pr001', img:1, jp:'ピカチュウ',             fr:'Pikachu',                          en:'Pikachu',                        r:'rare', t:'⚡', d:25  },
       { n:'pr002', img:2, jp:'プリン',                 fr:'Rondoudou',                        en:'Jigglypuff',                     r:'rare', t:'✨', d:39  },
-      { n:'pr003', img:3, jp:'ミュウ',                 fr:'Mew',                              en:'Mew',                            r:'rare', t:'🔮', d:151 },
-      { n:'pr004', img:4, jp:'ヤドン',                 fr:'Ramoloss',                         en:'Slowpoke',                       r:'rare', t:'💧', d:79  },
+      { n:'pr003', jp:'ミュウ',                 fr:'Mew',                              en:'Mew',                            r:'rare', t:'🔮', d:151 },
+      { n:'pr004', jp:'ヤドン',                 fr:'Ramoloss',                         en:'Slowpoke',                       r:'rare', t:'💧', d:79  },
       { n:'pr005', img:5, jp:'ミュウツー',             fr:'Mewtwo',                           en:'Mewtwo',                         r:'rare', t:'🔮', d:150 },
       { n:'pr006', img:6, jp:'ミュウツー',             fr:'Mewtwo',                           en:'Mewtwo',                         r:'rare', t:'🔮', d:150 },
       { n:'pr007', img:7, jp:'エネルギー回収',         fr:"Super sauvegarde d'Énergie",       en:'Energy Retrieval Super',         r:'rare', t:'🃏', item:'poke-ball'    },
