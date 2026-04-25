@@ -304,7 +304,7 @@ function renderCard(setId, card) {
     <div
       class="${classes}"
       data-key="${key}"
-      data-names="${getAllCardNames(card)}"
+      data-names="${getAllCardNames(card).replace(/"/g, '&quot;')}"
       data-owned="${isOwned}"
       onclick="${readOnlyMode ? '' : `toggleCard('${setId}', '${card.n}')`}"
     >
@@ -540,13 +540,14 @@ function selectSet(setId) {
     tab.classList.toggle('set-nav__tab--active', tab.dataset.set === setId);
   });
 
-  // Exit album mode on tab change
+  // Exit album mode on tab change and reset filter
   if (albumMode) {
     albumMode = false;
     document.getElementById('btn-album-toggle')?.classList.remove('active');
     document.getElementById('cards-container')?.classList.remove('album-mode');
-    currentFilter = 'all';
   }
+  currentFilter = 'all';
+  updateFilterButtons();
 
   // Album/lock FABs only make sense on card sets
   const isCardSet = !['extras', 'stats'].includes(setId);

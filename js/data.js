@@ -729,7 +729,7 @@ const SETS = {
       { n:'vg37', img:37, jp:'４枚サイドのしょうぶ',fr:'Match à 4 Récompenses',         en:'4 Prize Match',           r:'rare', t:'🃏', item:'poke-ball'    },
       { n:'vg38', img:38, jp:'こんらんで20ダメージ',fr:'20 dégâts de la Confusion',     en:'20 Confusion Damage',     r:'rare', t:'🃏', item:'poke-ball'    },
       { n:'vg39', img:39, jp:'さんまいのデッキのしょうぶ',fr:'Match à 3 decks',        en:'3-Deck Match',            r:'rare', t:'🃏', item:'poke-ball'    },
-      { n:'vg40', img:40, jp:'チームバトル！',     fr:'Match en équipe "Triopikeur"',   en:'Team Match Triopikeur',   r:'rare', t:'🃏', item:'poke-ball'    },
+      { n:'vg40', img:40, jp:'チームバトル！',     fr:'Match en équipe «Triopikeur»',   en:'Team Match Triopikeur',   r:'rare', t:'🃏', item:'poke-ball'    },
       { n:'vg41', img:41, jp:'デッキこうかん',     fr:'Échange de Deck',                en:'Deck Swap',               r:'rare', t:'🃏', item:'poke-ball'    },
       { n:'vg42', img:42, jp:'おおやまのピカチュウ',fr:'Pikachu de Ooyama',             en:"Ooyama's Pikachu",        r:'rare', t:'⚡', d:25   },
       { n:'vg43', img:43, jp:'イマクニ？のパソコン',fr:'PC de Imakuni?',               en:"Imakuni?'s PC",           r:'rare', t:'🃏', item:'poke-ball'    },
