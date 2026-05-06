@@ -959,7 +959,7 @@ async function openCardModal(setId, card) {
 
   // Build info panel immediately
   const rarityLabels = { common: 'Commune', uncommon: 'Peu commune', rare: 'Rare', holo: 'Holo Rare' };
-  const setNames = { base: 'Set de Base (1996)', jungle: 'Jungle (1997)', fossil: 'Fossile (1997)', rocket: 'Rocket (1997)', gym1: "Leaders' Stadium (1998)", gym2: 'Challenge from the Darkness (1999)', vmblue: 'Vending Machine Blue (1998)', vmred: 'Vending Machine Red (1998)', vmgreen: 'Vending Machine Green (1998)', promo: 'Unnumbered Promotional (1996–)' };
+  const setNames = { base: 'Set de Base (1996)', jungle: 'Jungle (1997)', fossil: 'Fossile (1997)', rocket: 'Rocket (1997)', gym1: "Leaders' Stadium (1998)", gym2: 'Challenge from the Darkness (1999)', vmblue: 'Vending Machine Blue (1998)', vmred: 'Vending Machine Red (1998)', vmgreen: 'Vending Machine Green (1998)', neo4: 'Neo Destiny (2001)', promo: 'Unnumbered Promotional (1996–)' };
   const isOwned  = !!collection[cardKey(setId, card.n)];
   const tcgQuery = encodeURIComponent(`${card.en} ${setNames[setId] || ''}`);
   const tcgUrl   = `https://www.tcgplayer.com/search/pokemon/product?q=${tcgQuery}&view=grid`;
@@ -1130,7 +1130,7 @@ function renderStats() {
     const total   = set.cards.length;
     const owned   = countOwned(setId);
     const pct     = total ? Math.round(owned / total * 100) : 0;
-    const color   = { base: '#e53935', jungle: '#43a047', fossil: '#c89020', rocket: '#7986cb', gym1: '#8bc34a', gym2: '#5c6bc0', vmblue: '#1e88e5', vmred: '#e53935', vmgreen: '#43a047', promo: '#f9a825' }[setId] || '#ff9800';
+    const color   = { base: '#e53935', jungle: '#43a047', fossil: '#c89020', rocket: '#7986cb', gym1: '#8bc34a', gym2: '#5c6bc0', vmblue: '#1e88e5', vmred: '#e53935', vmgreen: '#43a047', neo4: '#7b1fa2', promo: '#f9a825' }[setId] || '#ff9800';
     return `
       <div class="stats-row">
         <div class="stats-row__label"><span class="stats-row__dot" style="background:${color}"></span>${set.name[currentLang]}</div>
