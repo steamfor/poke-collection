@@ -385,7 +385,8 @@ const SETS = {
      OR5 — LEADERS' STADIUM — ジムリーダーの城 1998  (96 cartes)
   ================================================================ */
   gym1: {
-    name: { fr: "LEADERS' STADIUM", en: "Leaders' Stadium", jp: 'ジムリーダーの城' },
+    tab: 'GYM 1',
+    name: { fr: "GYM 1 — LEADERS' STADIUM", en: "Gym 1 — Leaders' Stadium", jp: 'GYM 1 — ジムリーダーの城' },
     subtitle: 'ジムリーダーの城 1998',
     cdnSet: 'OR5',
     cards: [
@@ -493,7 +494,8 @@ const SETS = {
      OR6 — CHALLENGE FROM THE DARKNESS — 闇からの挑戦状 1999  (99 cartes)
   ================================================================ */
   gym2: {
-    name: { fr: 'CHALLENGE FROM THE DARKNESS', en: 'Challenge from the Darkness', jp: '闇からの挑戦状' },
+    tab: 'GYM 2',
+    name: { fr: 'GYM 2 — CHALLENGE FROM THE DARKNESS', en: 'Gym 2 — Challenge from the Darkness', jp: 'GYM 2 — 闇からの挑戦状' },
     subtitle: '闇からの挑戦状 1999',
     cdnSet: 'OR6',
     cards: [
@@ -747,6 +749,83 @@ const SETS = {
   },
 
   /* ================================================================
+     NEO2 — NEO DISCOVERY — 遺跡をこえて… 2000
+     57 cartes — ordre exact checklist pokecardex
+  ================================================================ */
+  neo2: {
+    name: { fr: 'NEO DISCOVERY', en: 'Neo Discovery', jp: '遺跡をこえて…' },
+    subtitle: '遺跡をこえて… 2000',
+    cdnSet: 'NEO2',
+    cards: [
+      // ── Grass / Bug (1–12) ──
+      { n:'nd2001', img:1,  jp:'キャタピー',       fr:'Chenipan',                         en:'Caterpie',                 r:'common',   t:'🌿', d:10  },
+      { n:'nd2002', img:2,  jp:'ビードル',         fr:'Aspicot',                          en:'Weedle',                   r:'common',   t:'🌿', d:13  },
+      { n:'nd2003', img:3,  jp:'アリアドス',       fr:'Mimigal',                          en:'Ariados',                  r:'common',   t:'🌿', d:168 },
+      { n:'nd2004', img:4,  jp:'ハネッコ',         fr:'Granivol',                         en:'Hoppip',                   r:'common',   t:'🌿', d:187 },
+      { n:'nd2005', img:5,  jp:'クヌギダマ',       fr:'Pomdepik',                         en:'Pineco',                   r:'common',   t:'🌿', d:204 },
+      { n:'nd2006', img:6,  jp:'トランセル',       fr:'Chrysacier',                       en:'Metapod',                  r:'common',   t:'🌿', d:11  },
+      { n:'nd2007', img:7,  jp:'コクーン',         fr:'Coconfort',                        en:'Kakuna',                   r:'common',   t:'🌿', d:14  },
+      { n:'nd2008', img:8,  jp:'ストライク',       fr:'Insécateur',                       en:'Scyther',                  r:'holo',     t:'🌿', d:123 },
+      { n:'nd2009', img:9,  jp:'バタフリー',       fr:'Papilusion',                       en:'Butterfree',               r:'uncommon', t:'🌿', d:12  },
+      { n:'nd2010', img:10, jp:'スピアー',         fr:'Dardargnan',                       en:'Beedrill',                 r:'uncommon', t:'🌿', d:15  },
+      { n:'nd2011', img:11, jp:'ヤンヤンマ',       fr:'Yanma',                            en:'Yanma',                    r:'uncommon', t:'🌿', d:193 },
+      { n:'nd2012', img:12, jp:'デルビル',         fr:'Malosse',                          en:'Houndour',                 r:'common',   t:'🔥', d:228 },
+      // ── Water (13–19) ──
+      { n:'nd2013', img:13, jp:'ニョロモ',         fr:'Ptitard',                          en:'Poliwag',                  r:'common',   t:'💧', d:60  },
+      { n:'nd2014', img:14, jp:'カブト',           fr:'Kabuto',                           en:'Kabuto',                   r:'common',   t:'💧', d:140 },
+      { n:'nd2015', img:15, jp:'ウパー',           fr:'Axoloto',                          en:'Wooper',                   r:'common',   t:'💧', d:194 },
+      { n:'nd2016', img:16, jp:'ニョロゾ',         fr:'Têtarte',                          en:'Poliwhirl',                r:'uncommon', t:'💧', d:61  },
+      { n:'nd2017', img:17, jp:'サニーゴ',         fr:'Corayon',                          en:'Corsola',                  r:'uncommon', t:'💧', d:222 },
+      { n:'nd2018', img:18, jp:'カブトプス',       fr:'Kabutops',                         en:'Kabutops',                 r:'holo',     t:'👊', d:141 },
+      { n:'nd2019', img:19, jp:'ニョロトノ',       fr:'Tarpaud',                          en:'Politoed',                 r:'holo',     t:'💧', d:186 },
+      // ── Lightning (20–21) ──
+      { n:'nd2020', img:20, jp:'メリープ',         fr:'Wattouat',                         en:'Mareep',                   r:'common',   t:'⚡', d:179 },
+      { n:'nd2021', img:21, jp:'Drk ライチュウ',   fr:'Raichu Obscur',                    en:'Dark Raichu',              r:'holo',     t:'⚡', d:26  },
+      // ── Psychic (22–31) ──
+      { n:'nd2022', img:22, jp:'ネイティ',         fr:'Natu',                             en:'Natu',                     r:'common',   t:'🔮', d:177 },
+      { n:'nd2023', img:23, jp:'アンノーン I',     fr:'Zarbi I',                          en:'Unown I',                  r:'common',   t:'🔮', d:201 },
+      { n:'nd2024', img:24, jp:'ネイティオ',       fr:'Xatu',                             en:'Xatu',                     r:'holo',     t:'🔮', d:178 },
+      { n:'nd2025', img:25, jp:'アンノーン D',     fr:'Zarbi D',                          en:'Unown D',                  r:'common',   t:'🔮', d:201 },
+      { n:'nd2026', img:26, jp:'アンノーン F',     fr:'Zarbi F',                          en:'Unown F',                  r:'common',   t:'🔮', d:201 },
+      { n:'nd2027', img:27, jp:'アンノーン M',     fr:'Zarbi M',                          en:'Unown M',                  r:'common',   t:'🔮', d:201 },
+      { n:'nd2028', img:28, jp:'アンノーン U',     fr:'Zarbi U',                          en:'Unown U',                  r:'common',   t:'🔮', d:201 },
+      { n:'nd2029', img:29, jp:'エーフィ',         fr:'Mentali',                          en:'Espeon',                   r:'holo',     t:'🔮', d:196 },
+      { n:'nd2030', img:30, jp:'アンノーン A',     fr:'Zarbi A',                          en:'Unown A',                  r:'common',   t:'🔮', d:201 },
+      { n:'nd2031', img:31, jp:'ソーナンス',       fr:'Qulbutoke',                        en:'Wobbuffet',                r:'uncommon', t:'🔮', d:202 },
+      // ── Fighting / Rock (32–42) ──
+      { n:'nd2032', img:32, jp:'オムナイト',       fr:'Amonita',                          en:'Omanyte',                  r:'common',   t:'💧', d:138 },
+      { n:'nd2033', img:33, jp:'ウソッキー',       fr:'Debugant',                         en:'Sudowoodo',                r:'uncommon', t:'👊', d:185 },
+      { n:'nd2034', img:34, jp:'ヨーギラス',       fr:'Embrylex',                         en:'Larvitar',                 r:'common',   t:'👊', d:246 },
+      { n:'nd2035', img:35, jp:'オムスター',       fr:'Amonistar',                        en:'Omastar',                  r:'holo',     t:'💧', d:139 },
+      { n:'nd2036', img:36, jp:'サナギラス',       fr:'Ymphect',                          en:'Pupitar',                  r:'uncommon', t:'👊', d:247 },
+      { n:'nd2037', img:37, jp:'ニョロボン',       fr:'Tartard',                          en:'Poliwrath',                r:'holo',     t:'💧', d:62  },
+      { n:'nd2038', img:38, jp:'カポエラー',       fr:'Kapoera',                          en:'Hitmontop',                r:'holo',     t:'👊', d:237 },
+      { n:'nd2039', img:39, jp:'デルビル',         fr:'Malosse',                          en:'Houndour',                 r:'uncommon', t:'🔥', d:228 },
+      { n:'nd2040', img:40, jp:'ブラッキー',       fr:'Noctali',                          en:'Umbreon',                  r:'holo',     t:'☁️', d:197 },
+      { n:'nd2041', img:41, jp:'ヘルガー',         fr:'Démolosse',                        en:'Houndoom',                 r:'holo',     t:'🔥', d:229 },
+      { n:'nd2042', img:42, jp:'バンギラス',       fr:'Tyranocif',                        en:'Tyranitar',                r:'holo',     t:'👊', d:248 },
+      // ── Lightning / Steel (43–45) ──
+      { n:'nd2043', img:43, jp:'コイル',           fr:'Magnéti',                          en:'Magnemite',                r:'common',   t:'⚡', d:81  },
+      { n:'nd2044', img:44, jp:'フォレトス',       fr:'Foretress',                        en:'Forretress',               r:'uncommon', t:'🌿', d:205 },
+      { n:'nd2045', img:45, jp:'ハッサム',         fr:'Cizayox',                          en:'Scizor',                   r:'holo',     t:'🌿', d:212 },
+      // ── Colorless (46–52) ──
+      { n:'nd2046', img:46, jp:'オタチ',           fr:'Fouinette',                        en:'Sentret',                  r:'common',   t:'⬛', d:161 },
+      { n:'nd2047', img:47, jp:'エイパム',         fr:'Insolourdo',                       en:'Aipom',                    r:'uncommon', t:'⬛', d:190 },
+      { n:'nd2048', img:48, jp:'ヒメグマ',         fr:'Teddiursa',                        en:'Teddiursa',                r:'common',   t:'⬛', d:216 },
+      { n:'nd2049', img:49, jp:'イーブイ',         fr:'Evoli',                            en:'Eevee',                    r:'common',   t:'⬛', d:133 },
+      { n:'nd2050', img:50, jp:'ププリン',         fr:'Toudoudou',                        en:'Igglybuff',                r:'common',   t:'⬛', d:174 },
+      { n:'nd2051', img:51, jp:'リングマ',         fr:'Ursaring',                         en:'Ursaring',                 r:'uncommon', t:'⬛', d:217 },
+      { n:'nd2052', img:52, jp:'ドーブル',         fr:'Queulorior',                       en:'Smeargle',                 r:'rare',     t:'⬛', d:235 },
+      // ── Trainers (53–57) ──
+      { n:'nd2053', img:53, jp:'エネルギーアーチ', fr:"Arche d'Énergie",                  en:'Energy Arch',              r:'uncommon', t:'🃏', item:'poke-ball'   },
+      { n:'nd2054', img:54, jp:'崩れた壁',         fr:'Mur en ruines',                    en:'Crumbling Wall',           r:'uncommon', t:'🃏', item:'hard-stone'  },
+      { n:'nd2055', img:55, jp:'崩れた壁',         fr:'Mur en ruines',                    en:'Crumbling Wall',           r:'uncommon', t:'🃏', item:'hard-stone'  },
+      { n:'nd2056', img:56, jp:'化石の卵',         fr:'Œuf Fossile',                      en:'Fossil Egg',               r:'uncommon', t:'🃏', item:'dome-fossil' },
+      { n:'nd2057', img:57, jp:'超古代退化スプレー',fr:'Vaporisateur hyper rétrograde',   en:'Hyper Devolution Spray',   r:'uncommon', t:'🃏', item:'full-incense'},
+    ],
+  },
+
+  /* ================================================================
      NEO4 — NEO DESTINY — 闇、そして光へ… 2001
      113 cartes — ordre exact checklist pokecardex
   ================================================================ */
@@ -881,7 +960,7 @@ const SETS = {
   },
 
   promo: {
-    name: { fr: 'PROMOS NON NUMÉROTÉES', en: 'Unnumbered Promotional', jp: '非売品プロモ' },
+    name: { fr: 'PROMO', en: 'Promo', jp: 'プロモ' },
     subtitle: 'Unnumbered Promotional 1996–',
     cdnSet: 'UPC',
     cards: [
