@@ -125,6 +125,7 @@ let currentExtraSort = 'none';
 let currentLang = 'fr';
 let editingExtraIdx = null;
 let albumMode    = false;
+let lumineuxMode = false;
 let readOnlyMode = false;
 
 /** Pokémon name cache for datalist autocomplete */
@@ -551,7 +552,8 @@ function selectSet(setId) {
 
   // Album/lock FABs only make sense on card sets
   const isCardSet = !['extras', 'stats'].includes(setId);
-  document.getElementById('btn-album-toggle').style.display = isCardSet ? '' : 'none';
+  document.getElementById('btn-album-toggle').style.display   = isCardSet ? '' : 'none';
+  document.getElementById('btn-lumineux-toggle').style.display = isCardSet ? '' : 'none';
 
   if (setId === 'extras') {
     renderExtras();
@@ -602,8 +604,9 @@ function setLanguage(lang) {
   document.getElementById('btn-reset').textContent  = labels.reset;
   const shareEl = document.getElementById('btn-share');
   if (shareEl) shareEl.textContent = labels.share;
-  document.getElementById('btn-album').textContent  = labels.albumMode;
-  document.getElementById('btn-lock').textContent   = lockMode ? labels.unlock : labels.lock;
+  document.getElementById('btn-album').textContent    = labels.albumMode;
+  document.getElementById('btn-lumineux').textContent = labels.lumineuxMode;
+  document.getElementById('btn-lock').textContent     = lockMode ? labels.unlock : labels.lock;
 
   // Set tab names
   Object.keys(SETS).forEach(setId => {
@@ -870,6 +873,24 @@ function toggleAlbum() {
     container.classList.remove('album-mode');
     showToast('📖 Mode Album désactivé');
   }
+}
+
+/* ============================================================
+   LUMINEUX MODE
+============================================================ */
+
+function toggleLumineux() {
+  if (currentSet === 'extras' || currentSet === 'stats') return;
+  lumineuxMode = !lumineuxMode;
+
+  const btn       = document.getElementById('btn-lumineux-toggle');
+  const container = document.getElementById('cards-container');
+
+  btn.classList.toggle('active', lumineuxMode);
+  container.classList.toggle('lumineux-mode', lumineuxMode);
+
+  const labels = UI_LABELS[currentLang];
+  showToast(lumineuxMode ? `☀️ ${labels.lumineuxOn}` : `🌙 ${labels.lumineuxOff}`);
 }
 
 function updateFilterButtons() {
