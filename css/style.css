@@ -1312,6 +1312,32 @@ body {
 }
 
 /* ============================================================
+   LUMINEUX MODE — show all cards at full brightness
+============================================================ */
+
+.lumineux-mode .card:not(.card--owned) .card__tcg-img {
+  filter: none;
+}
+.lumineux-mode .card:not(.card--owned) .card__tcg-fallback .card__sprite {
+  filter: contrast(1.05);
+  opacity: 1;
+}
+.lumineux-mode .card:not(.card--owned) .card__sprite {
+  filter: none;
+  opacity: 1;
+}
+
+/* Combine with album mode: restore hidden content on missing slots */
+.lumineux-mode.album-mode .card[data-owned="false"] {
+  opacity: 1;
+  border-style: solid;
+  border-color: rgba(255,255,255,0.06);
+  background: var(--bg-card);
+}
+.lumineux-mode.album-mode .card[data-owned="false"] .card__name,
+.lumineux-mode.album-mode .card[data-owned="false"] .card__sprite-zone { opacity: 1; }
+
+/* ============================================================
    STATS PAGE
 ============================================================ */
 
@@ -1927,6 +1953,13 @@ body {
 }
 
 /* fab--album active state defined in ALBUM MODE section above */
+
+.fab--lumineux.active {
+  color: #fde047;
+  border-color: rgba(253,224,71,0.4);
+  background: rgba(253,224,71,0.1);
+  box-shadow: 0 4px 20px rgba(0,0,0,0.5), 0 0 20px rgba(253,224,71,0.25);
+}
 
 @media (max-width: 600px) {
   .fab-group { bottom: 20px; right: 14px; gap: 8px; }
