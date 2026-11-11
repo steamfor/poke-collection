@@ -5,6 +5,10 @@
 
 /** Pokecardex CDN image — visuels JP officiels */
 const getPokecardexUrl = (setCode, pos) =>
+  `images/cards/${setCode}/${pos}.jpg`;
+
+/** Remote fallback if a scan has not been archived yet. */
+const getPokecardexRemoteUrl = (setCode, pos) =>
   `https://pokecardex-scans.b-cdn.net/sets_jp/${setCode}/${pos}.jpg?class=md`;
 
 /** Pokémon sprite — pixel art Gen 1 pour #1-151, standard pour les suivants */
