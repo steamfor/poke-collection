@@ -23,6 +23,7 @@ async function download(job) {
   for (let attempt = 0; attempt < 3; attempt++) {
     try {
       const response = await fetch(job.url, { signal: AbortSignal.timeout(20000) });
+      if (response.status === 404) return 'missing';
       if (!response.ok) throw new Error('HTTP ' + response.status);
       const bytes = Buffer.from(await response.arrayBuffer());
       const jpeg = bytes[0] === 0xff && bytes[1] === 0xd8;
@@ -42,15 +43,16 @@ async function download(job) {
 }
 (async () => {
   const queue = [...jobs.values()];
-  let next = 0, ok = 0, failed = 0;
+  let next = 0, ok = 0, missing = 0, failed = 0;
   async function worker() {
     while (next < queue.length) {
       const result = await download(queue[next++]);
       if (result === 'failed') failed++;
+      else if (result === 'missing') missing++;
       else ok++;
     }
   }
   await Promise.all(Array.from({length: 6}, worker));
-  console.log('Card scans: ' + ok + ' available, ' + failed + ' failed, ' + queue.length + ' unique images');
+  console.log('Card scans: ' + ok + ' available, ' + missing + ' missing (HTTP 404), ' + failed + ' failed, ' + queue.length + ' unique images');
   if (failed) process.exitCode = 1;
 })();
