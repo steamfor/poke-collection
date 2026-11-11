@@ -358,6 +358,12 @@ function loadTCGdexImages(setId, cards) {
       if (fallback) fallback.style.display = 'none';
     };
     imgEl.onerror = () => {
+      // Some rare scans may be unavailable locally; keep the remote source as fallback.
+      const remoteUrl = getPokecardexRemoteUrl(cdnSet, card.img);
+      if (imgEl.src !== new URL(remoteUrl, document.baseURI).href) {
+        imgEl.src = remoteUrl;
+        return;
+      }
       skeleton?.remove();
       imgEl.remove();
       if (fallback) fallback.classList.add('card__tcg-fallback--visible');
@@ -973,7 +979,8 @@ async function openCardModal(setId, card) {
   const largeUrl = cdnSet && card.img
     ? `https://pokecardex-scans.b-cdn.net/sets_jp/${cdnSet}/${card.img}.jpg?class=lg`
     : null;
-  const candidates = [...new Set([thumbnail?.currentSrc || thumbnail?.src, mediumUrl, largeUrl].filter(Boolean))];
+  const remoteUrl = cdnSet && card.img ? getPokecardexRemoteUrl(cdnSet, card.img) : null;
+  const candidates = [...new Set([thumbnail?.currentSrc || thumbnail?.src, mediumUrl, remoteUrl, largeUrl].filter(Boolean))];
   loader.textContent = '⏳';
   let imageIndex = 0;
   img.onload = () => { loader.style.display = 'none'; };
