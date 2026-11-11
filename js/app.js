@@ -963,19 +963,32 @@ async function openCardModal(setId, card) {
   // Show modal
   modal.classList.add('card-modal--visible');
 
-  // Image JP pokecardex CDN — haute résolution (class=lg)
+  // Prefer the image already displayed in the list: it is known to have loaded.
+  // The large CDN variant can fail even when the medium-sized card is available.
   const cdnSet = SETS[setId]?.cdnSet;
-  const jpImgUrl = cdnSet && card.img
+  const thumbnail = Array.from(document.querySelectorAll('.card__tcg-img'))
+    .find(el => el.dataset.set === setId && el.dataset.num === String(card.n)
+      && el.complete && el.naturalWidth > 0);
+  const mediumUrl = cdnSet && card.img ? getPokecardexUrl(cdnSet, card.img) : null;
+  const largeUrl = cdnSet && card.img
     ? `https://pokecardex-scans.b-cdn.net/sets_jp/${cdnSet}/${card.img}.jpg?class=lg`
     : null;
-
-  if (jpImgUrl) {
-    img.src = jpImgUrl;
-    img.onload  = () => { loader.style.display = 'none'; };
-    img.onerror = () => { loader.textContent = '🃏'; };
-  } else {
-    loader.textContent = '🃏';
-  }
+  const candidates = [...new Set([thumbnail?.currentSrc || thumbnail?.src, mediumUrl, largeUrl].filter(Boolean))];
+  loader.textContent = '⏳';
+  let imageIndex = 0;
+  img.onload = () => { loader.style.display = 'none'; };
+  img.onerror = () => {
+    imageIndex++;
+    if (imageIndex < candidates.length) {
+      img.src = candidates[imageIndex];
+    } else {
+      img.removeAttribute('src');
+      loader.textContent = '🃏 Image indisponible';
+      loader.style.display = 'block';
+    }
+  };
+  if (candidates.length) img.src = candidates[0];
+  else loader.textContent = '🃏 Image indisponible';
   setTimeout(() => flip.classList.add('card-modal__flip--flipped'), 200);
 
   // Build info panel immediately
