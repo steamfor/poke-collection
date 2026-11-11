@@ -25,8 +25,12 @@ async function download(job) {
       const response = await fetch(job.url, { signal: AbortSignal.timeout(20000) });
       if (!response.ok) throw new Error('HTTP ' + response.status);
       const bytes = Buffer.from(await response.arrayBuffer());
-      if (bytes.length < 1000 || bytes[0] !== 0xff || bytes[1] !== 0xd8)
-        throw new Error('Not a valid JPEG');
+      const jpeg = bytes[0] === 0xff && bytes[1] === 0xd8;
+      const png = bytes.subarray(0, 8).equals(Buffer.from([137,80,78,71,13,10,26,10]));
+      const webp = bytes.toString('ascii', 0, 4) === 'RIFF' &&
+        bytes.toString('ascii', 8, 12) === 'WEBP';
+      if (bytes.length < 1000 || !(jpeg || png || webp))
+        throw new Error('Unsupported image response (' + (response.headers.get('content-type') || 'unknown') + ', first bytes: ' + bytes.subarray(0, 12).toString('hex') + ')');
       fs.mkdirSync(path.dirname(job.dest), { recursive: true });
       fs.writeFileSync(job.dest, bytes);
       return 'downloaded';
