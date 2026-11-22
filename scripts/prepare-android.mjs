@@ -32,4 +32,9 @@ for (const file of ['index.html', 'css', 'js', 'manifest.json', 'icon.png']) {
 // Japanese card scans are bundled locally when present in the repository.
 await copyOptional('images');
 
+// Reuse the existing pixel-art Poké Ball as the native launcher icon source.
+const assetsDir = path.join(root, 'assets');
+await mkdir(assetsDir, { recursive: true });
+await cp(path.join(root, 'icon.png'), path.join(assetsDir, 'icon.png'));
+
 console.log('Android web bundle prepared in ./www');
