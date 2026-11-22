@@ -18,6 +18,21 @@
 
 * { margin: 0; padding: 0; box-sizing: border-box; }
 
+/* Android/iOS safe areas: keep content clear of system bars and display cutouts. */
+:root {
+  --app-safe-top: var(--safe-area-inset-top, env(safe-area-inset-top, 0px));
+  --app-safe-right: var(--safe-area-inset-right, env(safe-area-inset-right, 0px));
+  --app-safe-bottom: var(--safe-area-inset-bottom, env(safe-area-inset-bottom, 0px));
+  --app-safe-left: var(--safe-area-inset-left, env(safe-area-inset-left, 0px));
+}
+
+body {
+  padding-top: var(--app-safe-top);
+  padding-right: var(--app-safe-right);
+  padding-bottom: var(--app-safe-bottom);
+  padding-left: var(--app-safe-left);
+}
+
 body {
   background-color: var(--bg);
   color: var(--text);
@@ -48,7 +63,7 @@ body {
 /* Wrapper to keep header+set-nav sticky together */
 .sticky-nav {
   position: sticky;
-  top: 0;
+  top: var(--app-safe-top);
   z-index: 99;
 }
 
@@ -1893,7 +1908,7 @@ body {
 
 .fab-group {
   position: fixed;
-  bottom: 28px;
+  bottom: calc(28px + var(--app-safe-bottom));
   right: 20px;
   display: flex;
   flex-direction: column;
@@ -1962,7 +1977,7 @@ body {
 }
 
 @media (max-width: 600px) {
-  .fab-group { bottom: 20px; right: 14px; gap: 8px; }
+  .fab-group { bottom: calc(20px + var(--app-safe-bottom)); right: 14px; gap: 8px; }
   .fab { width: 46px; height: 46px; border-radius: 14px; }
   .fab__icon { font-size: 18px; }
 }
