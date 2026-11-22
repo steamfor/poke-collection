@@ -63,7 +63,7 @@ body {
 /* Wrapper to keep header+set-nav sticky together */
 .sticky-nav {
   position: sticky;
-  top: 0;
+  top: var(--app-safe-top);
   z-index: 99;
 }
 
