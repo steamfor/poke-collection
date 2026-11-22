@@ -1,0 +1,11 @@
+{
+  "appId": "com.steamfor.pokecollection",
+  "appName": "PokeCollection",
+  "webDir": "www",
+  "server": {
+    "androidScheme": "https"
+  },
+  "android": {
+    "allowMixedContent": false
+  }
+}
