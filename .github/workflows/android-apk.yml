@@ -38,6 +38,9 @@ jobs:
       - name: Generate Android project
         run: npx cap add android
 
+      - name: Generate native Android launcher icons
+        run: npx @capacitor/assets generate --android --assetPath assets --iconBackgroundColor '#0d0d1a' --iconBackgroundColorDark '#0d0d1a'
+
       - name: Sync web assets
         run: npx cap sync android
 
